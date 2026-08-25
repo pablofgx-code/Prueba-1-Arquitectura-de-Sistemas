@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 
 app = FastAPI(title="Sistema de Donaciones Iglesia")
-
+print("hola")
 @app.get("/")
 def read_root():
     return {"mensaje": "¡El backend de la iglesia está funcionando perfectamente!"}
