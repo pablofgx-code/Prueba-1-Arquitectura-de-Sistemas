@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+beanie
+motor
+jinja2
+pytest
+pytest-cov
+mongomock-motor
+pandas
+openpyxl
+python-multipart
