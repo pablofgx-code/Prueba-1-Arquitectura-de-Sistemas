@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from beanie import PydanticObjectId
 
 class PerfilCreate(BaseModel):
     nombre: str = Field(..., min_length=2, max_length=50, description="Nombre del beneficiario")
@@ -12,7 +13,7 @@ class PerfilCreate(BaseModel):
     motivo_situacion: Optional[str] = None
 
 class PerfilResponse(PerfilCreate):
-    id: str
+    id: PydanticObjectId
 
 
 

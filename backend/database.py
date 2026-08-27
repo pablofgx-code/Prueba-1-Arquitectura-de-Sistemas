@@ -1,16 +1,16 @@
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 from backend.perfiles.models import Perfil
 
-load_dotenv
+load_dotenv(find_dotenv())
 
 async def iniciar_base_de_datos():
 
-    url_base_datos = os.getenv("MONGODB_URl")
+    url_base_datos = os.getenv("MONGODB_URL")
     nombre_base_datos = os.getenv("DATABASE_NAME")
-
+    
     if not url_base_datos or not nombre_base_datos:
         raise ValueError("Faltan variables de entorno para la Base de Datos")
     

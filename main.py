@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 
 from backend.database import iniciar_base_de_datos
+from backend.perfiles.router import router as perfiles_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -12,13 +13,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Sistema de Donaciones Iglesia", lifespan=lifespan)
 
+app.include_router(perfiles_router)
+
 templates = Jinja2Templates(directory="frontend/templates")
 
 @app.get("/")
 def read_root(request: Request):
     return templates.TemplateResponse(
         "index.html", 
-        {"request": request, "mensaje": "¡Backend y BD conectados!"}
+        {"request": request, "mensaje": "Backend y base de datos conectada xd"}
     )
 
 if __name__ == "__main__":
