@@ -5,6 +5,7 @@ import uvicorn
 
 from backend.database import iniciar_base_de_datos
 from backend.perfiles.router import router as perfiles_router
+from backend.auth.router import router as auth_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,6 +15,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Sistema de Donaciones Iglesia", lifespan=lifespan)
 
 app.include_router(perfiles_router)
+app.include_router(auth_router)
 
 templates = Jinja2Templates(directory="frontend/templates")
 
