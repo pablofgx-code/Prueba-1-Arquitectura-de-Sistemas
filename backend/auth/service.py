@@ -102,7 +102,7 @@ class AuthService:
 
         if not email:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="El token de recuperacion es invalido o ha caducado."
             )
 

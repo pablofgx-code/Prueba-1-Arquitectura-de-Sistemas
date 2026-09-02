@@ -68,9 +68,20 @@ async def restablecer_password(
  
     return await service.restablecer_password(datos)
 
+@router.post("/logout")
+async def cerrar_sesion(
+    response: Response,
+    admin_actual: Administrador = Depends(obtener_admin_actual)
+):
 
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=False,
+        samesite="lax"
+    )
 
-
+    return {"mensaje" : f"Sesion cerrada de manera exitosa, hasta la proxima, {admin_actual.nombre}"}
 
 
 
