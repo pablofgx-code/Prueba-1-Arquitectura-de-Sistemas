@@ -1,6 +1,11 @@
 from fastapi import APIRouter, Depends, status, Response
-from backend.auth.schemas import AdministradorCreate, AdministradorResponse, LoginData
+from backend.auth.schemas import (
+    AdministradorCreate, AdministradorResponse, LoginData, CambiarPassword,
+    SolicitudRecuperacion, RestablecerPassword
+    )
 from backend.auth.service import AuthService
+from backend.auth.models import Administrador
+from backend.auth.dependencies import obtener_admin_actual
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticacion"])
 
@@ -39,6 +44,33 @@ async def iniciar_sesion(
             "mensaje": "Inicio de sesion exitoso", 
             "admin": admin.nombre
            }
+
+@router.put("/cambiar-password")
+async def modificar_password(
+    datos: CambiarPassword,
+    admin_actual: Administrador = Depends(obtener_admin_actual),
+    service: AuthService = Depends(get_auth_service)
+):
+    return await service.cambiar_password(admin_actual, datos)
+
+@router.post("/solicitar-recuperacion")
+async def solicitar_recuperacion_password(
+    datos: SolicitudRecuperacion,
+    service: AuthService = Depends(get_auth_service)
+):
+    return await service.solicitar_recuperacion(datos)
+
+@router.post("/restablecer-password")
+async def restablecer_password(
+    datos: RestablecerPassword,
+    service: AuthService = Depends(get_auth_service)
+):
+ 
+    return await service.restablecer_password(datos)
+
+
+
+
 
 
 

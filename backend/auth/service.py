@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from backend.auth.models import Administrador 
-from backend.auth.schemas import AdministradorCreate, LoginData
+from backend.auth.schemas import AdministradorCreate, LoginData, CambiarPassword, SolicitudRecuperacion, RestablecerPassword
 from backend.auth import security
 
 class AuthService:
@@ -56,4 +56,72 @@ class AuthService:
         token_data = {"sub": str(admin.id), "email": admin.email}
 
         return security.crear_token_jwt(token_data)
+
+    async def cambiar_password(self, admin: Administrador, datos: CambiarPassword) -> dict:
+
+        if not security.verificar_password(datos.password_actual, admin.hashed_password):
+            raise HTTPException(status_code=401, detail="La contraseña actual es incorrecta")
+
+        if security.verificar_password(datos.nueva_password, admin.hashed_password):
+            raise HTTPException(
+                status_code=400,
+                detail="La nueva contraseña no puede ser igual a la anterior"
+            )
+
+        admin.hashed_password = security.obtener_hash_password(datos.nueva_password)
+
+        await admin.save()
+
+        return {"mensaje": "La contraseña ha sido actualizada de manera exitosa :D"}
+
+    async def solicitar_recuperacion(self, datos: SolicitudRecuperacion) -> dict:
+
+        admin = await Administrador.find_one(Administrador.email == datos.email)
+
+        respuesta_estandar = {
+            "mensaje" : "Si el correo esta registrado en el sistema, recibiras las instrucciones en breves"
+        }
+
+        if not admin or not admin.activo:
+            return respuesta_estandar
+
+        token_recuperacion = security.crear_token_recuperacion(admin.email)
+
+        print("\n" + "=" * 60)
+        print("📨 [SIMULADOR EMAIL] Notificación de Restablecimiento de Clave")
+        print(f"Destinatario : {admin.email}")
+        print("Token generado (Válido por 15 minutos):")
+        print(token_recuperacion)
+        print("=" * 60 + "\n")
+
+        return respuesta_estandar
+
+    async def restablecer_password(self, datos: RestablecerPassword) -> dict:
+
+        email = security.decodificar_token_recuperacion(datos.token)
+
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="El token de recuperacion es invalido o ha caducado."
+            )
+
+        admin = await Administrador.find_one(Administrador.email == email)
+        if not admin or not admin.activo:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Usuario no encontrado o inactivo."
+            )
+        
+        if security.verificar_password(datos.nueva_password, admin.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La nueva contraseña no puede ser igual a la anterior."
+            )
+
+        admin.hashed_password = security.obtener_hash_password(datos.nueva_password)
+        
+        await admin.save()
+
+        return {"mensaje" : "Contraseña restablecer exitosamente. Ahora puedes iniciar sesion con tu nueva contraseña."}
 

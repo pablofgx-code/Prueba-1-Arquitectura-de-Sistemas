@@ -1,8 +1,13 @@
 import os
 import bcrypt
 from datetime import datetime, timedelta, timezone
-from jose import jwt
+from jose import jwt, JWTError
 
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+
+if not SECRET_KEY:
+    raise ValueError("Falta JWT_SECRET_KEY en el archivo")
     
 def obtener_hash_password(password: str) -> str:
 
@@ -32,12 +37,35 @@ def crear_token_jwt(data: dict) -> str:
 
     to_encode.update({"exp": expire})
 
-    secret_key = os.getenv("JWT_SECRET_KEY")
-    algorithm = os.getenv("JWT_ALGORITHM", "HS256")
-
-    if not secret_key:
-        raise ValueError("Falta JWT_SECRET_KEY en el archivo .env")
-
-    encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
     return encoded_jwt
+
+def crear_token_recuperacion(email: str) -> str:
+
+    minutos_expiracion = 15
+    expire = datetime.now(timezone.utc) + timedelta(minutes=minutos_expiracion)
+
+    to_encode = {
+        "sub": email,
+        "scope": "recuperacion",
+        "exp": expire
+    }
+
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def decodificar_token_recuperacion(token: str) -> str | None:
+
+    try:
+        
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM]) 
+
+        if payload.get("scope") != "recuperacion":
+            return None
+
+        return payload.get("sub")
+
+    except JWTError:
+        return None
+
+
