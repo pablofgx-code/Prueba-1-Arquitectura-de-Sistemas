@@ -2,12 +2,17 @@ from fastapi import HTTPException, status
 from backend.auth.models import Administrador 
 from backend.auth.schemas import AdministradorCreate, LoginData, CambiarPassword, SolicitudRecuperacion, RestablecerPassword
 from backend.auth import security
+from backend.auth.repository import AdministradorRepository
 
 class AuthService:
 
+    def __init__(self, repo: AdministradorRepository):
+
+        self.repo = repo
+
     async def registrar_admin(self, admin_dto: AdministradorCreate) -> Administrador:
         
-        admin_existente = await Administrador.find_one(Administrador.email == admin_dto.email)
+        admin_existente = await self.repo.buscar_por_email(admin_dto.email)
         
         if admin_existente:
             raise HTTPException(
@@ -23,13 +28,11 @@ class AuthService:
             hashed_password=password_encriptada    
         )
 
-        await nuevo_admin.insert()
-
-        return nuevo_admin
+        return self.repo.crear(nuevo_admin)
 
     async def autenticar_admin(self, login_dto: LoginData) -> Administrador:
 
-        admin = await Administrador.find_one(Administrador.email == login_dto.email)
+        admin = await self.repo.buscar_por_email(login_dto.email)
 
         if not admin:
             raise HTTPException(
@@ -70,13 +73,13 @@ class AuthService:
 
         admin.hashed_password = security.obtener_hash_password(datos.nueva_password)
 
-        await admin.save()
+        await self.repo.actualizar(admin)
 
         return {"mensaje": "La contraseña ha sido actualizada de manera exitosa :D"}
 
     async def solicitar_recuperacion(self, datos: SolicitudRecuperacion) -> dict:
 
-        admin = await Administrador.find_one(Administrador.email == datos.email)
+        admin = await self.repo.buscar_por_email(datos.email)
 
         respuesta_estandar = {
             "mensaje" : "Si el correo esta registrado en el sistema, recibiras las instrucciones en breves"
@@ -106,7 +109,7 @@ class AuthService:
                 detail="El token de recuperacion es invalido o ha caducado."
             )
 
-        admin = await Administrador.find_one(Administrador.email == email)
+        admin = await self.repo.buscar_por_email(email)
         if not admin or not admin.activo:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -121,7 +124,7 @@ class AuthService:
 
         admin.hashed_password = security.obtener_hash_password(datos.nueva_password)
         
-        await admin.save()
+        await self.repo.actualizar(admin)
 
         return {"mensaje" : "Contraseña restablecer exitosamente. Ahora puedes iniciar sesion con tu nueva contraseña."}
 

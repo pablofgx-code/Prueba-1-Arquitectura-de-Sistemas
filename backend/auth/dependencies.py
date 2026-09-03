@@ -4,10 +4,11 @@ from jose import jwt, JWTError
 from beanie import PydanticObjectId
 from backend.auth.models import Administrador
 from backend.auth.security import SECRET_KEY, ALGORITHM
+from backend.auth.constants import COOKIE_NAME, TOKEN_PREFIX
 
 async def obtener_admin_actual(request: Request) ->Administrador:
 
-    token_con_prefijo = request.cookies.get("access_token")
+    token_con_prefijo = request.cookies.get(COOKIE_NAME)
 
     if not token_con_prefijo:
         raise HTTPException(
@@ -15,7 +16,7 @@ async def obtener_admin_actual(request: Request) ->Administrador:
             detail="No autorizado. Por favor, inicia sesion."
         )
 
-    token = token_con_prefijo.replace("Bearer ", "")
+    token = token_con_prefijo.replace(TOKEN_PREFIX, "")
 
     try:
 

@@ -1,17 +1,21 @@
 from fastapi import APIRouter, Depends, status, Response
+from backend.auth.service import AuthService
+from backend.auth.models import Administrador
+from backend.auth.dependencies import obtener_admin_actual
+from backend.auth.constants import COOKIE_NAME, TOKEN_PREFIX
+from backend.auth.repository import AdministradorRepository
 from backend.auth.schemas import (
     AdministradorCreate, AdministradorResponse, LoginData, CambiarPassword,
     SolicitudRecuperacion, RestablecerPassword
     )
-from backend.auth.service import AuthService
-from backend.auth.models import Administrador
-from backend.auth.dependencies import obtener_admin_actual
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticacion"])
 
 def get_auth_service() -> AuthService:
 
-    return AuthService()
+    repo = AdministradorRepository()
+
+    return AuthService(repo)
 
 @router.post("/registro", response_model=AdministradorResponse, status_code=status.HTTP_201_CREATED)
 async def registrar_administrador(
@@ -32,8 +36,8 @@ async def iniciar_sesion(
     token = service.generar_token_para_admin(admin)
 
     response.set_cookie(
-        key="access_token",
-        value=f"Bearer {token}",
+        key=COOKIE_NAME,
+        value=f"{TOKEN_PREFIX} {token}",
         httponly=True,
         secure=False,
         samesite="lax",
@@ -75,7 +79,7 @@ async def cerrar_sesion(
 ):
 
     response.delete_cookie(
-        key="access_token",
+        key=COOKIE_NAME,
         httponly=True,
         secure=False,
         samesite="lax"
