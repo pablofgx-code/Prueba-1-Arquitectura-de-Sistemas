@@ -16,7 +16,7 @@ async def obtener_admin_actual(request: Request) ->Administrador:
             detail="No autorizado. Por favor, inicia sesion."
         )
 
-    token = token_con_prefijo.replace(TOKEN_PREFIX, "")
+    token = token_con_prefijo.replace(f"{TOKEN_PREFIX} ", "")
 
     try:
 

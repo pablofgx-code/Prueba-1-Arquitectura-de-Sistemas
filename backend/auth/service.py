@@ -28,7 +28,7 @@ class AuthService:
             hashed_password=password_encriptada    
         )
 
-        return self.repo.crear(nuevo_admin)
+        return await self.repo.crear(nuevo_admin)
 
     async def autenticar_admin(self, login_dto: LoginData) -> Administrador:
 
@@ -126,5 +126,5 @@ class AuthService:
         
         await self.repo.actualizar(admin)
 
-        return {"mensaje" : "Contraseña restablecer exitosamente. Ahora puedes iniciar sesion con tu nueva contraseña."}
+        return {"mensaje" : "La contraseña se restablecio exitosamente. Ahora puedes iniciar sesion con tu nueva contraseña."}
 
