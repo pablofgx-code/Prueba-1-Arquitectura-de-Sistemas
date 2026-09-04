@@ -32,7 +32,7 @@ class DonacionService:
         
         mes_doc = await self._obtener_mes_o_fallar(year, mes)
         
-        semana_destino: Semana = await self._obtener_semana_o_fallar(mes_doc, datos.numero_semana)
+        semana_destino: Semana = self._obtener_semana_o_fallar(mes_doc, datos.numero_semana)
 
         nueva_donacion= DonacionAlimento(
             tipo_alimento = datos.tipo_alimento,
@@ -98,7 +98,7 @@ class DonacionService:
 
         mes_doc = await self._obtener_mes_o_fallar(year, mes)
 
-        semana_a_eliminar: Semana = await self._obtener_semana_o_fallar(mes_doc, numero_semana)
+        semana_a_eliminar: Semana = self._obtener_semana_o_fallar(mes_doc, numero_semana)
 
         if len(semana_a_eliminar.donaciones) > 0:
             raise HTTPException(
@@ -116,7 +116,7 @@ class DonacionService:
 
         mes_doc = await self._obtener_mes_o_fallar(year, mes)
 
-        semana_destino: Semana = await self._obtener_semana_o_fallar(mes_doc, numero_semana)
+        semana_destino: Semana = self._obtener_semana_o_fallar(mes_doc, numero_semana)
 
         donacion_existe = any(d.id == donacion_id for d in semana_destino.donaciones)
         if not donacion_existe:
@@ -131,7 +131,7 @@ class DonacionService:
         
         mes_doc = await self._obtener_mes_o_fallar(year, mes)
         
-        semana_destino: Semana = await self._obtener_semana_o_fallar(mes_doc, numero_semana)
+        semana_destino: Semana = self._obtener_semana_o_fallar(mes_doc, numero_semana)
 
         semana_destino.donaciones = []
 
@@ -140,7 +140,7 @@ class DonacionService:
         return {"mensaje" : f"Se han eliminado todas las donaciones de la semana {numero_semana}"}
 
 
-    async def _obtener_semana_o_fallar(self, mes_doc: MesDonacion, numero_semana: int) -> Semana:
+    def _obtener_semana_o_fallar(self, mes_doc: MesDonacion, numero_semana: int) -> Semana:
 
         semana_destino = next((s for s in mes_doc.semanas if s.numero_semana == numero_semana), None)
 
