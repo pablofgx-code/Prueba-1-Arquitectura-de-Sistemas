@@ -2,8 +2,13 @@ from fastapi import APIRouter, Depends, status
 from typing import List
 from backend.perfiles.schemas import PerfilCreate, PerfilResponse
 from backend.perfiles.service import PerfilService
+from backend.auth.dependencies import obtener_admin_actual
 
-router = APIRouter(prefix="/api/perfiles", tags=["Perfiles"])
+router = APIRouter(
+    prefix="/api/perfiles", 
+    tags=["Perfiles"],
+    dependencies=[Depends(obtener_admin_actual)]
+)
 
 def get_perfil_service() -> PerfilService:
     return PerfilService()
