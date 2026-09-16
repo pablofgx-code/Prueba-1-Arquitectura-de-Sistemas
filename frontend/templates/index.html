@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sistema de Donaciones</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', path='css/styles.css') }}"
+    >
+</head>
+
+<body>
+
+    <main class="container">
+
+        <h1>Sistema de Donaciones</h1>
+
+        <p class="mensaje">
+            {{ mensaje }}
+        </p>
+
+        <button id="boton-prueba">
+            Probar JavaScript
+        </button>
+
+        <p id="resultado"></p>
+
+    </main>
+
+    <script
+        src="{{ url_for('static', path='js/script.js') }}"
+    ></script>
+
+</body>
+</html>

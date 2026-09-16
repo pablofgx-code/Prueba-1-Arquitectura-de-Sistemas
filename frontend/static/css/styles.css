@@ -1,0 +1,39 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+}
+
+.container {
+    width: 90%;
+    max-width: 800px;
+    margin: 80px auto;
+    padding: 40px;
+
+    background: white;
+    border-radius: 12px;
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+.mensaje {
+    margin-bottom: 30px;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#resultado {
+    margin-top: 20px;
+}
