@@ -1,0 +1,22 @@
+services:
+
+  app:
+    build: .
+    container_name: iglesia_app
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_URL: mongodb://mongodb:27017
+      MONGO_DB: iglesia_donaciones
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:7
+    container_name: iglesia_mongodb
+
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

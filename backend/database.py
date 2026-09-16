@@ -1,6 +1,6 @@
 import os
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 
 from backend.perfiles.models import Perfil
@@ -18,7 +18,7 @@ MONGO_DB = os.getenv(
 
 
 async def iniciar_base_de_datos():
-    client = AsyncIOMotorClient(MONGO_URL)
+    client = AsyncMongoClient(MONGO_URL)
 
     db = client[MONGO_DB]
 
