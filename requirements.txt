@@ -4,6 +4,7 @@ beanie
 jinja2
 pytest
 pytest-cov
+httpx2
 mongomock-motor
 pandas
 openpyxl
