@@ -14,7 +14,7 @@ on:
 jobs:
 
   test:
-    name: Tests
+    name: Ejecutar tests
     runs-on: ubuntu-latest
 
     steps:
@@ -38,8 +38,9 @@ jobs:
 
 
   docker:
-    name: Docker Build
+    name: Construir imagen Docker
     runs-on: ubuntu-latest
+
     needs: test
 
     steps:
