@@ -5,6 +5,7 @@ from beanie import init_beanie
 from backend.perfiles.models import Perfil
 from backend.auth.models import Administrador
 from backend.donaciones.models import MesDonacion
+from backend.inventario.models import ItemInventario
 
 load_dotenv(find_dotenv())
 
@@ -20,6 +21,6 @@ async def iniciar_base_de_datos():
     
     db = client[nombre_base_datos]
 
-    await init_beanie(database=db, document_models=[Perfil, Administrador, MesDonacion])
+    await init_beanie(database = db, document_models = [Perfil, Administrador, MesDonacion, ItemInventario])
     
     print(f"Base de datos MongoDB conectada. {nombre_base_datos}")
