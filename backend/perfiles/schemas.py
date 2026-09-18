@@ -17,6 +17,13 @@ class PerfilResponse(PerfilCreate):
     id: PydanticObjectId
     historial_retiros: List[date] = []
 
+class ItemRetiro(BaseModel):
+    tipo_alimento: str = Field(..., min_length = 2, description = "Ej: Arroz, Aceite")
+    cantidad: int = Field(..., ge = 1, description = "Cantidad a retirar")
+
+class SolicitudRetiro(BaseModel):
+    alimentos: List[ItemRetiro] = Field(..., description = "Lista de alimentos retirados")
+
 
 
 

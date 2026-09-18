@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, status
 from typing import List
 from fastapi.responses import StreamingResponse
-from backend.perfiles.schemas import PerfilCreate, PerfilResponse
+from backend.perfiles.schemas import PerfilCreate, PerfilResponse, SolicitudRetiro
 from backend.perfiles.service import PerfilService
 from backend.auth.dependencies import obtener_admin_actual
 from backend.perfiles.repository import PerfilRepository
+from backend.perfiles.orquestador import RegistrarRetiroOrquestador
+from backend.inventario.repository import InventarioRepository
+from backend.inventario.service import InventarioService
 
 router = APIRouter(
     prefix="/api/perfiles", 
@@ -15,6 +18,15 @@ router = APIRouter(
 def get_perfil_service() -> PerfilService:
     repo = PerfilRepository()
     return PerfilService(repo)
+
+def get_registrar_retiro_orquestador(
+    perfil_service: PerfilService = Depends(get_perfil_service)
+) -> RegistrarRetiroOrquestador:
+    
+    inventario_repo = InventarioRepository()
+    inventario_service = InventarioService(inventario_repo)
+
+    return RegistrarRetiroOrquestador(perfil_service, inventario_service)
 
 @router.post("/registrar", response_model=PerfilResponse, status_code=status.HTTP_201_CREATED)
 async def registrar_perfil(
@@ -32,9 +44,10 @@ async def listar_perfiles(
 @router.post("/{rut}/retiros")
 async def registrar_retiro_manual(
     rut: str,
-    service: PerfilService = Depends(get_perfil_service)
+    datos: SolicitudRetiro,
+    orquestador: RegistrarRetiroOrquestador = Depends(get_registrar_retiro_orquestador)
 ):
-    return await service.registrar_retiro(rut)
+    return await orquestador.ejecutar(rut, datos)
 
 @router.get("/reporte/excel", response_class=StreamingResponse)
 async def descargar_reporte_excel(

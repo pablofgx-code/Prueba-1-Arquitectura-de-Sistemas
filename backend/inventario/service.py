@@ -31,6 +31,7 @@ class InventarioService:
                     status_code = status.HTTP_400_BAD_REQUEST,
                     detail = f"Stock insuficiente para {item.tipo_alimento}. Disponible: {item.cantidad_disponible}." 
                 )
+            item.cantidad_disponible -= cantidad
         
         return await self.repo.guardar(item)
 
