@@ -11,10 +11,9 @@ class RegistrarRetiroOrquestador:
     async def ejecutar(self, rut: str, datos: SolicitudRetiro) -> dict:
 
         for item in datos.alimentos:
-            await self.inventario_service.modificar_stock(
+            await self.inventario_service.registrar_salida(
                 tipo_alimento = item.tipo_alimento,
-                cantidad = item.cantidad,
-                es_ingreso = False
+                cantidad = item.cantidad
             )
 
         return await self.perfil_service.registrar_retiro(rut)

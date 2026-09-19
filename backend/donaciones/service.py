@@ -158,4 +158,14 @@ class DonacionService:
         
         return mes_doc
 
+    async def contar_alimentos_mes_actual(self, year: int, mes: int) -> int:
+        mes_doc = await self.repo.buscar_por_mes(year, mes)
+        
+        if not mes_doc:
+            return 0
 
+        return sum(
+            donacion.cantidad
+            for semana in mes_doc.semanas
+            for donacion in semana.donaciones
+        )

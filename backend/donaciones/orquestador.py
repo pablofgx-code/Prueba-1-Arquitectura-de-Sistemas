@@ -12,10 +12,10 @@ class RegistrarDonacionOrquestador:
         
         respuesta = await self.donacion_service.registra_donacion(year, mes, datos)
 
-        await self.inventario_service.modificar_stock(
+        await self.inventario_service.registrar_ingreso(
             tipo_alimento = datos.tipo_alimento,
             cantidad = datos.cantidad,
-            es_ingreso = True
+            fecha_vencimiento = datos.fecha_vencimiento
         )
 
         return respuesta

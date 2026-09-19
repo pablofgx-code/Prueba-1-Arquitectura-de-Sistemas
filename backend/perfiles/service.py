@@ -5,8 +5,10 @@ from datetime import datetime
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from backend.perfiles.models import Perfil
+from backend.perfiles.schemas import ItemRetiro
 from backend.perfiles.schemas import PerfilCreate
 from backend.perfiles.repository import PerfilRepository
+from backend.perfiles.models import Perfil, RegistroRetiro, ItemLlevado
 
 class PerfilService:
 
@@ -32,6 +34,10 @@ class PerfilService:
 
         return await self.repo.obtener_todos()
 
+    async def contar_total_perfiles(self) -> int:
+        perfiles = await self.repo.obtener_todos()
+        return len(perfiles )
+
     async def obtener_resumen_anual_retiros(self, year: int) -> List:
 
         perfiles = await self.repo.obtener_todos()
@@ -40,7 +46,7 @@ class PerfilService:
 
         for perfil in perfiles:
             meses_retirados_este_year = [
-                fecha.month for fecha in perfil.historial_retiros if fecha.year == year
+                registro.fecha.month for registro in perfil.historial_retiros if registro.fecha.year == year
             ]
 
             resumen_list.append({
@@ -51,17 +57,24 @@ class PerfilService:
 
         return resumen_list
 
-    async def registrar_retiro(self, rut: str) -> dict:
+    async def registrar_retiro(self, rut: str, alimentos_retirados: List[ItemRetiro]) -> dict:
         
         perfil = await self.repo.buscar_por_rut(rut)
         if not perfil:
             raise HTTPException(status_code=404, detail="Perfil no encontrado.")
 
         fecha_actual = datetime.now().date()
-        if fecha_actual in perfil.historial_retiros:
-            raise HTTPException(status_code=400, detail="Esta persona ya tiene registrado un retiro el dia de hoy.")
 
-        perfil.historial_retiros.append(fecha_actual)
+        if any(registro.fecha == fecha_actual for registro in perfil.historial_retiros):
+            raise HTTPException(status_code=400, detail="Esta persona ya retiró el día de hoy.")
+
+        items_llevados = [
+            ItemLlevado(tipo_alimento = item.tipo_alimento, cantidad = item.cantidad)
+            for item in alimentos_retirados
+        ]
+
+        nuevo_registro = RegistroRetiro(fecha = fecha_actual, alimentos_llevados = items_llevados)
+        perfil.historial_retiros.append(nuevo_registro)
         
         await self.repo.guardar(perfil)
 
@@ -82,7 +95,7 @@ class PerfilService:
         anio_actual = datetime.now().year
         for perfil in perfiles:
             fila = [perfil.rut, perfil.nombre, perfil.apellido]
-            meses_con_retiro = {fecha.month for fecha in perfil.historial_retiros if fecha.year == anio_actual}
+            meses_con_retiro = {registro.fecha.month for registro in perfil.historial_retiros if registro.fecha.year == anio_actual}
             
             for mes_numero in range(1, 13):
                 if mes_numero in meses_con_retiro:

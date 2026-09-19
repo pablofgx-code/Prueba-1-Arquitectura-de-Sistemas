@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
-from backend.inventario.models import ItemInventario
+from backend.inventario.models import LotePerecible
 from backend.inventario.repository import InventarioRepository
+from datetime import date
 
 class InventarioService:
 
@@ -10,32 +11,57 @@ class InventarioService:
     async def obtener_bodega_completa(self):
         return await self.repo.obtener_todo()
 
-    async def modificar_stock(self, tipo_alimento: str, cantidad: int, es_ingreso: bool) -> ItemInventario:
-        item = await self.repo.buscar_por_alimento(tipo_alimento)
+    async def registrar_ingreso(self, tipo_alimento: str, cantidad: int, fecha_vencimiento: date) -> LotePerecible:
 
-        if not item and es_ingreso:
-            nuevo_item = ItemInventario(tipo_alimento = tipo_alimento.capitalize(), cantidad_disponible = cantidad)
-            return await self.repo.insertar(nuevo_item)
+        nuevo_lote = LotePerecible(
+            tipo_alimento = tipo_alimento.capitalize(),
+            cantidad_disponible = cantidad,
+            fecha_vencimiento = fecha_vencimiento
+        )
+        return await self.repo.insert(nuevo_lote)
 
-        if not item and not es_ingreso:
+    async def registrar_salida(self, tipo_alimento: str, cantidad_requerida: int):
+
+        lotes = await self.repo.buscar_lotes_disponibles(tipo_alimento)
+
+        total_disponible = sum(lote.cantidad_disponible for lote in lotes)
+
+        if total_disponible < cantidad_requerida:
             raise HTTPException(
                 status_code = status.HTTP_400_BAD_REQUEST,
-                detail = f"No hay registros de {tipo_alimento} en la bodega."
+                detail = f"Stock insuficiente de {tipo_alimento}. Solicitado: {cantidad_requerida}, Disponible: {total_disponible}."
             )
 
-        if es_ingreso:
-            item.cantidad_disponible += cantidad
-        else:
-            if item.cantidad_disponible < cantidad:
-                raise HTTPException(
-                    status_code = status.HTTP_400_BAD_REQUEST,
-                    detail = f"Stock insuficiente para {item.tipo_alimento}. Disponible: {item.cantidad_disponible}." 
-                )
-            item.cantidad_disponible -= cantidad
-        
-        return await self.repo.guardar(item)
+        cantidad_por_descontar = cantidad_requerida
 
+        for lote in lotes:
+            if cantidad_por_descontar == 0:
+                break
+
+            if lote.cantidad_disponible <= cantidad_por_descontar:
+                cantidad_por_descontar -= lote.cantidad_disponible
+                lote.cantidad_disponible = 0
+            else:
+                lote.cantidad_disponible -= cantidad_por_descontar
+                cantidad_por_descontar = 0
+
+            await self.repo.guardar(lote)
         
+
+    async def obtener_resumen_agrupado(self) -> list:
+        
+        lotes = await self.repo.obtener_todo()
+        
+        resumen = {}
+
+        for lote in lotes:
+            if lote.cantidad_disponible > 0:
+                if lote.tipo_alimento in resumen:
+                    resumen[lote.tipo_alimento] += lote.cantidad_disponible
+                else:
+                    resumen[lote.tipo_alimento] = lote.cantidad_disponible
+        
+        return [{"nombre" : nombre, "cantidad_total" : total} for nombre, total in resumen.items()]
 
 
 

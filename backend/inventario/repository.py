@@ -1,27 +1,30 @@
 from typing import List
-from backend.inventario.models import ItemInventario
+from backend.inventario.models import LotePerecible
 
 class InventarioRepository:
 
-    async def buscar_por_alimento(self, tipo_alimento: str) -> ItemInventario | None:
+    async def buscar_lotes_disponibles(self, tipo_alimento: str) -> List[LotePerecible]:
 
-        return await ItemInventario.find_one({"tipo_alimento" : {"$regex" : f"^{tipo_alimento}$", "$options" : "i"}})
+        return await LotePerecible.find(
+            LotePerecible.tipo_alimento == tipo_alimento.capitalize(),
+            LotePerecible.cantidad_disponible > 0
+        ).sort(+LotePerecible.fecha_vencimiento).to_list()
 
-    async def insert(self, item: ItemInventario) -> ItemInventario:
+    async def insert(self, item: LotePerecible) -> LotePerecible:
         
         await item.insert()
         
         return item
 
-    async def guardar(self, item: ItemInventario) -> ItemInventario:
+    async def guardar(self, item: LotePerecible) -> LotePerecible:
         
         await item.save()
         
         return item
 
-    async def obtener_todo(self) -> List[ItemInventario]:
+    async def obtener_todo(self) -> List[LotePerecible]:
         
-        return await ItemInventario.find_all().to_list()
+        return await LotePerecible.find_all().to_list()
 
 
 
