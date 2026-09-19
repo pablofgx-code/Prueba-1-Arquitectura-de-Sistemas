@@ -14,7 +14,7 @@ class RegistrarRetiroOrquestador:
             await self.inventario_service.modificar_stock(
                 tipo_alimento = item.tipo_alimento,
                 cantidad = item.cantidad,
-                es_ingresa = False
+                es_ingreso = False
             )
 
         return await self.perfil_service.registrar_retiro(rut)
