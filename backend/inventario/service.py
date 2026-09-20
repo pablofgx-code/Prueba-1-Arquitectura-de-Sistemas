@@ -61,7 +61,7 @@ class InventarioService:
                 else:
                     resumen[lote.tipo_alimento] = lote.cantidad_disponible
         
-        return [{"nombre" : nombre, "cantidad_total" : total} for nombre, total in resumen.items()]
+        return [{"tipo_alimento" : nombre, "cantidad_total" : total} for nombre, total in resumen.items()]
 
     async def registro_ticket_transaccion(self, rut: str, alimentos: list) -> None:
 

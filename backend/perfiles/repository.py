@@ -23,6 +23,8 @@ class PerfilRepository:
 
         return perfil
 
+    async def eliminar(self, perfil: Perfil) -> None:
+        await perfil.delete()
 
 
 

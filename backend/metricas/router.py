@@ -8,7 +8,7 @@ from backend.inventario.router import get_inventario_service
 
 router = APIRouter(
     prefix = "/api/metricas",
-    tag = ["Metricas Dashboard"],
+    tags = ["Metricas Dashboard"],
     dependencies = [Depends(obtener_admin_actual)]
 )
 

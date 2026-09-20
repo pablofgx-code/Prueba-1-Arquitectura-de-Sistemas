@@ -5,10 +5,8 @@ from datetime import datetime
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from backend.perfiles.models import Perfil
-from backend.perfiles.schemas import ItemRetiro
 from backend.perfiles.schemas import PerfilCreate
 from backend.perfiles.repository import PerfilRepository
-from backend.perfiles.models import Perfil, RegistroRetiro, ItemLlevado
 
 class PerfilService:
 
@@ -106,4 +104,14 @@ class PerfilService:
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
             headers={"Content-Disposition": f"attachment; filename=retiros_donaciones_{anio_actual}.xlsx"}
         )
-    
+
+    async def eliminar_perfil(self, rut: str) -> dict:
+        
+        perfil = await self.repo.buscar_por_rut(rut)
+        
+        if not perfil:
+            raise HTTPException(status_code = 404, detail = "Perfil no encontrado")
+        
+        await self.repo.eliminar(perfil)
+
+        return {"mensaje" : f"El perfil de {perfil.nombre} ha sido eliminado del sistema"}

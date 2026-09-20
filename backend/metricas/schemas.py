@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List
 
 class ResumenBodega(BaseModel):
-    nombre: str
+    tipo_alimento: str
     cantidad_total: int
 
 class DashboardMetrics(BaseModel):
