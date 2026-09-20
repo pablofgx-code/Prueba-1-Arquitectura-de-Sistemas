@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
-from backend.inventario.models import LotePerecible
+from backend.inventario.models import LotePerecible, ItemLlevado, RegistroSalida
 from backend.inventario.repository import InventarioRepository
-from datetime import date
+from datetime import date, datetime
 
 class InventarioService:
 
@@ -63,6 +63,20 @@ class InventarioService:
         
         return [{"nombre" : nombre, "cantidad_total" : total} for nombre, total in resumen.items()]
 
+    async def registro_ticket_transaccion(self, rut: str, alimentos: list) -> None:
 
+        items = [ItemLlevado(tipo_alimento = alimento.tipo_alimento, cantidad = alimento.cantidad) for alimento in alimentos]
+        
+        ticket = RegistroSalida(
+            fecha = datetime.now(),
+            rut_beneficiario = rut,
+            alimentos_entregados = items
+        )
+        
+        await self.repo.guardar_ticket_salida(ticket)
+
+    async def contar_salidas_mes_actual(self, year: int, mes: int) -> int:
+
+        return await self.repo.sumar_salidas_del_mes(year, mes)
 
 

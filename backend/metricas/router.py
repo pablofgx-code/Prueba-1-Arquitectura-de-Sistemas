@@ -4,6 +4,7 @@ from backend.metricas.schemas import DashboardMetrics
 from backend.metricas.orquestador import ObtenerMetricasOrquestador
 from backend.perfiles.router import get_perfil_service
 from backend.donaciones.router import get_donacion_service
+from backend.inventario.router import get_inventario_service
 
 router = APIRouter(
     prefix = "/api/metricas",
@@ -13,9 +14,10 @@ router = APIRouter(
 
 def get_metricas_orquestador(
     perfil_service = Depends(get_perfil_service),
-    donacion_service = Depends(get_donacion_service)
+    donacion_service = Depends(get_donacion_service),
+    inventario_service = Depends(get_inventario_service)
 ) -> ObtenerMetricasOrquestador:
-    return ObtenerMetricasOrquestador(perfil_service, donacion_service)
+    return ObtenerMetricasOrquestador(perfil_service, donacion_service, inventario_service)
 
 @router.get("/dashboard", response_model = DashboardMetrics)
 async def ver_metricas_dashboard(

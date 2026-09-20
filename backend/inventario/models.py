@@ -1,6 +1,7 @@
 from beanie import Document
-from datetime import date
-from pydantic import Field
+from datetime import date, datetime
+from pydantic import Field, BaseModel
+from typing import List
 
 class LotePerecible(Document):
 
@@ -12,3 +13,14 @@ class LotePerecible(Document):
 
         name = "bodega_central"
 
+class ItemLlevado(BaseModel):
+    tipo_alimento: str
+    cantidad: int
+
+class RegistroSalida(Document):
+    fecha: datetime
+    rut_beneficiario: str
+    alimentos_entregados: List[ItemLlevado]
+
+    class Settings:
+        name = "historial_salidas"

@@ -1,5 +1,5 @@
 from typing import List
-from backend.inventario.models import LotePerecible
+from backend.inventario.models import LotePerecible, RegistroSalida
 
 class InventarioRepository:
 
@@ -26,7 +26,27 @@ class InventarioRepository:
         
         return await LotePerecible.find_all().to_list()
 
+    async def guardar_ticket_salida(self, ticket: RegistroSalida) -> RegistroSalida:
+        await ticket.insert()
+        return ticket
 
+    async def sumar_salidas_del_mes(self, year: int, mes: int) -> int:
+        pipeline = [
+            {"$match": {
+                "$expr": {
+                    "$and": [
+                        {"$eq": [{"$year": "$fecha"}, year]},
+                        {"$eq": [{"$month": "$fecha"}, mes]}
+                    ]
+                }
+            }},
+            {"$unwind": "$alimentos_entregados"},
+            {"$group": {
+                "_id": None,
+                "total_kilos": {"$sum": "$alimentos_entregados.cantidad"}
+            }}
+        ]
 
-
-
+        resultado = await RegistroSalida.aggregate(pipeline).to_list()
+        return resultado[0]["total_kilos"] if resultado else 0
+ 

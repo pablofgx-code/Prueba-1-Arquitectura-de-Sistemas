@@ -16,6 +16,8 @@ class RegistrarRetiroOrquestador:
                 cantidad = item.cantidad
             )
 
+        await self.inventario_service.registro_ticket_transaccion(rut, datos.alimentos)
+
         return await self.perfil_service.registrar_retiro(rut)
 
 
