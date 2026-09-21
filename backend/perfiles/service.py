@@ -64,21 +64,39 @@ class PerfilService:
 
         return resumen_list
 
-    async def registrar_retiro(self, rut: str) -> dict:
+    async def obtener_resumen_agrupado_por_mes(self, year: int) -> List:
+
+        resumen_original = await self.obtener_resumen_anual_retiros(year)
         
-        perfil = await self.repo.buscar_por_rut(rut)
-        if not perfil or not perfil.activo:
-            raise HTTPException(status_code=404, detail="Perfil no encontrado o inactivo.")
-
-        fecha_actual = datetime.now().date()
-        if fecha_actual in perfil.historial_retiros:
-            raise HTTPException(status_code=400, detail="Esta persona ya tiene registrado un retiro el dia de hoy.")
-
-        perfil.historial_retiros.append(fecha_actual)
+        nombres_meses = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ]
         
-        await self.repo.guardar(perfil)
+        resumen_meses = {
+            i: {
+                "numero_mes": i, 
+                "nombre_mes": nombres_meses[i-1], 
+                "personas": []
+            } for i in range(1, 13)
+        }
 
-        return {"mensaje" : f"Retiro registrado exitosamente para {perfil.nombre}"}
+        for persona in resumen_original:
+            
+            meses_unicos = set(persona["meses_retirados"])
+
+            if not meses_unicos:
+                continue 
+                
+            datos_persona = {
+                "rut": persona["rut"],
+                "nombre_completo": persona["nombre_completo"]
+            }
+            
+            for mes in meses_unicos:
+                resumen_meses[mes]["personas"].append(datos_persona)
+
+        return list(resumen_meses.values())
 
     async def generar_reporte_excel(self) -> StreamingResponse:
 
