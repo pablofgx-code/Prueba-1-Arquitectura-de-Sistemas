@@ -36,7 +36,8 @@ class DonacionService:
 
         nueva_donacion= DonacionAlimento(
             tipo_alimento = datos.tipo_alimento,
-            cantidad = datos.cantidad
+            cantidad = datos.cantidad,
+            fecha_vencimiento = datos.fecha_vencimiento
         )
 
         semana_destino.donaciones.append(nueva_donacion)
@@ -133,7 +134,7 @@ class DonacionService:
         
         semana_destino: Semana = self._obtener_semana_o_fallar(mes_doc, numero_semana)
 
-        donaciones_eliminadas = semana_destino.donaciones.copy()
+        donaciones_eliminadas = list(semana_destino.donaciones)
 
         semana_destino.donaciones = []
 

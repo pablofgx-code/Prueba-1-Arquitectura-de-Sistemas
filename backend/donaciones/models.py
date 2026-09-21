@@ -2,11 +2,13 @@ import uuid
 from beanie import Document
 from pydantic import BaseModel, Field
 from typing import List
+from datetime import date
 
 class DonacionAlimento(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     tipo_alimento: str = Field(..., description="Ej: Arroz, Fideos, Leche")
     cantidad: int = Field(..., ge=1, description="Cantidad en unidades o kilos")
+    fecha_vencimiento: date = Field(...)
 
 class Semana(BaseModel):
     numero_semana: int = Field(..., ge=1, le=5)

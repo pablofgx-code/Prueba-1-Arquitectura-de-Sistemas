@@ -13,6 +13,12 @@ class InventarioService:
 
     async def registrar_ingreso(self, tipo_alimento: str, cantidad: int, fecha_vencimiento: date) -> LotePerecible:
 
+        lote_existente = await self.repo.buscar_lote_especifico(tipo_alimento, fecha_vencimiento)
+
+        if lote_existente:
+            lote_existente.cantidad_disponible += cantidad
+            return await self.repo.guardar(lote_existente)
+        
         nuevo_lote = LotePerecible(
             tipo_alimento = tipo_alimento.capitalize(),
             cantidad_disponible = cantidad,
@@ -47,6 +53,31 @@ class InventarioService:
 
             await self.repo.guardar(lote)
         
+    async def revertir_ingreso(self, tipo_alimento: str, cantidad: int, fecha_vencimiento: date):
+
+        lotes = await self.repo.buscar_lotes_por_fecha(tipo_alimento, fecha_vencimiento)
+
+        total_disponible = sum(lote.cantidad_disponible for lote in lotes)
+        
+        if total_disponible < cantidad:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"No se puede eliminar la donacion. El lote de {tipo_alimento} ya fue consumido parcialmente."
+            )
+        
+        cantidad_por_descontar = cantidad
+        for lote in lotes:
+            if cantidad_por_descontar == 0:
+                break
+                
+            if lote.cantidad_disponible <= cantidad_por_descontar:
+                cantidad_por_descontar -= lote.cantidad_disponible
+                lote.cantidad_disponible = 0
+            else:
+                lote.cantidad_disponible -= cantidad_por_descontar
+                cantidad_por_descontar = 0
+                
+            await self.repo.guardar(lote)
 
     async def obtener_resumen_agrupado(self) -> list:
         

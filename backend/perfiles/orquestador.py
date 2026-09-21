@@ -13,7 +13,7 @@ class RegistrarRetiroOrquestador:
         for item in datos.alimentos:
             await self.inventario_service.registrar_salida(
                 tipo_alimento = item.tipo_alimento,
-                cantidad = item.cantidad
+                cantidad_requerida = item.cantidad
             )
 
         await self.inventario_service.registro_ticket_transaccion(rut, datos.alimentos)

@@ -1,5 +1,6 @@
 from typing import List
 from backend.inventario.models import LotePerecible, RegistroSalida
+from datetime import date
 
 class InventarioRepository:
 
@@ -24,11 +25,26 @@ class InventarioRepository:
 
     async def obtener_todo(self) -> List[LotePerecible]:
         
-        return await LotePerecible.find_all().to_list()
+        return await LotePerecible.find(
+            LotePerecible.cantidad_disponible > 0
+        ).to_list()
 
     async def guardar_ticket_salida(self, ticket: RegistroSalida) -> RegistroSalida:
         await ticket.insert()
         return ticket
+
+    async def buscar_lotes_por_fecha(self, tipo_alimento: str, fecha_vencimiento: date) -> List[LotePerecible]:
+        return await LotePerecible.find(
+            LotePerecible.tipo_alimento == tipo_alimento.capitalize(),
+            LotePerecible.fecha_vencimiento == fecha_vencimiento,
+            LotePerecible.cantidad_disponible > 0
+        ).to_list()
+
+    async def buscar_lote_especifico(self, tipo_alimento: str, fecha_vencimiento: date) -> LotePerecible | None:
+        return await LotePerecible.find_one(
+            LotePerecible.tipo_alimento == tipo_alimento.capitalize(),
+            LotePerecible.fecha_vencimiento == fecha_vencimiento
+        )
 
     async def sumar_salidas_del_mes(self, year: int, mes: int) -> int:
         pipeline = [
