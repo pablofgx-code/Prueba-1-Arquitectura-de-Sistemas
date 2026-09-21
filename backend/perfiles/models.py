@@ -12,6 +12,7 @@ class Perfil(Document):
     situacion_calle: bool = False
     motivo_situacion: Optional[str] = None 
     historial_retiros: List[date] = []
+    activo: bool = True
 
     class Settings:
         name = "perfiles"

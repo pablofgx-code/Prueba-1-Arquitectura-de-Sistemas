@@ -14,6 +14,13 @@ class PerfilService:
         self.repo = repo
         
     async def crear_perfil(self, perfil_dto: PerfilCreate) -> Perfil:
+
+        perfil_existente = await self.repo.buscar_por_rut(perfil_dto.rut)
+        
+        if perfil_existente:
+            if not perfil_existente.activo:
+                raise HTTPException(status_code=400, detail="Este RUT pertenece a una persona eliminada. Contacte soporte para reactivarla.")
+            raise HTTPException(status_code=400, detail="Este RUT ya está registrado en el sistema.")
         
         nuevo_perfil = Perfil(**perfil_dto.model_dump())
         
@@ -23,7 +30,7 @@ class PerfilService:
 
         perfil = await self.repo.buscar_por_rut(rut)
 
-        if not perfil:
+        if not perfil or not perfil.activo:
             raise HTTPException(status_code=404, detail="Perfil no encontrado")
 
         return perfil
@@ -32,9 +39,13 @@ class PerfilService:
 
         return await self.repo.obtener_todos()
 
+    async def contar_total_perfiles(self) -> int:
+        perfiles = await self.repo.obtener_todos()
+        return len(perfiles)
+
     async def obtener_resumen_anual_retiros(self, year: int) -> List:
 
-        perfiles = await self.repo.obtener_todos()
+        perfiles = await self.repo.obtener_todos_historial()
         
         resumen_list = []
 
@@ -43,45 +54,66 @@ class PerfilService:
                 fecha.month for fecha in perfil.historial_retiros if fecha.year == year
             ]
 
+            estado = "" if perfil.activo else " (Eliminado)"
+
             resumen_list.append({
                 "rut" : perfil.rut,
-                "nombre_completo" : f"{perfil.nombre} {perfil.apellido}",
+                "nombre_completo" : f"{perfil.nombre} {perfil.apellido}{estado}",
                 "meses_retirados" : meses_retirados_este_year 
             })
 
         return resumen_list
 
-    async def registrar_retiro(self, rut: str) -> dict:
+    async def obtener_resumen_agrupado_por_mes(self, year: int) -> List:
+
+        resumen_original = await self.obtener_resumen_anual_retiros(year)
         
-        perfil = await self.repo.buscar_por_rut(rut)
-        if not perfil:
-            raise HTTPException(status_code=404, detail="Perfil no encontrado.")
-
-        fecha_actual = datetime.now().date()
-        if fecha_actual in perfil.historial_retiros:
-            raise HTTPException(status_code=400, detail="Esta persona ya tiene registrado un retiro el dia de hoy.")
-
-        perfil.historial_retiros.append(fecha_actual)
+        nombres_meses = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ]
         
-        await self.repo.guardar(perfil)
+        resumen_meses = {
+            i: {
+                "numero_mes": i, 
+                "nombre_mes": nombres_meses[i-1], 
+                "personas": []
+            } for i in range(1, 13)
+        }
 
-        return {"mensaje" : f"Retiro registrado exitosamente para {perfil.nombre}"}
+        for persona in resumen_original:
+            
+            meses_unicos = set(persona["meses_retirados"])
+
+            if not meses_unicos:
+                continue 
+                
+            datos_persona = {
+                "rut": persona["rut"],
+                "nombre_completo": persona["nombre_completo"]
+            }
+            
+            for mes in meses_unicos:
+                resumen_meses[mes]["personas"].append(datos_persona)
+
+        return list(resumen_meses.values())
 
     async def generar_reporte_excel(self) -> StreamingResponse:
 
-        perfiles = await self.repo.obtener_todos()
+        perfiles = await self.repo.obtener_todos_historial()
 
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "Reporte de Retiros"
 
         meses_str = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
-        cabeceras = ["RUT", "Nombre", "Apellido"] + meses_str
+        cabeceras = ["RUT", "Nombre", "Apellido", "Estado"] + meses_str
         ws.append(cabeceras)
         
         anio_actual = datetime.now().year
         for perfil in perfiles:
-            fila = [perfil.rut, perfil.nombre, perfil.apellido]
+            estado_txt = "Activo" if perfil.activo else "Eliminado"
+            fila = [perfil.rut, perfil.nombre, perfil.apellido, estado_txt]
             meses_con_retiro = {fecha.month for fecha in perfil.historial_retiros if fecha.year == anio_actual}
             
             for mes_numero in range(1, 13):
@@ -101,4 +133,13 @@ class PerfilService:
             headers={"Content-Disposition": f"attachment; filename=retiros_donaciones_{anio_actual}.xlsx"}
         )
 
-    
+    async def eliminar_perfil(self, rut: str) -> dict:
+        
+        perfil = await self.repo.buscar_por_rut(rut)
+        
+        if not perfil:
+            raise HTTPException(status_code = 404, detail = "Perfil no encontrado")
+        
+        await self.repo.eliminar(perfil)
+
+        return {"mensaje" : f"El perfil de {perfil.nombre} ha sido eliminado del sistema"}

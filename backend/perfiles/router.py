@@ -60,7 +60,7 @@ async def ver_resumen_anual_retiros(
     year: int,
     service: PerfilService = Depends(get_perfil_service)
 ):
-    return await service.obtener_resumen_anual_retiros(year)
+    return await service.obtener_resumen_agrupado_por_mes(year)
 
 @router.get("/{rut}", response_model=PerfilResponse)
 async def obtener_perfil_por_rut(
@@ -68,3 +68,10 @@ async def obtener_perfil_por_rut(
     service: PerfilService = Depends(get_perfil_service)
 ):
     return await service.obtener_por_rut(rut)
+
+@router.delete("/{rut}")
+async def eliminar_perfil_beneficiario(
+    rut: str,
+    service: PerfilService = Depends(get_perfil_service)
+):
+    return await service.eliminar_perfil(rut)

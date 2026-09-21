@@ -36,7 +36,8 @@ class DonacionService:
 
         nueva_donacion= DonacionAlimento(
             tipo_alimento = datos.tipo_alimento,
-            cantidad = datos.cantidad
+            cantidad = datos.cantidad,
+            fecha_vencimiento = datos.fecha_vencimiento
         )
 
         semana_destino.donaciones.append(nueva_donacion)
@@ -117,15 +118,15 @@ class DonacionService:
         mes_doc = await self._obtener_mes_o_fallar(year, mes)
 
         semana_destino: Semana = self._obtener_semana_o_fallar(mes_doc, numero_semana)
-
-        donacion_existe = any(d.id == donacion_id for d in semana_destino.donaciones)
-        if not donacion_existe:
+        
+        donacion_a_eliminar = next((d for d in semana_destino.donaciones if d.id == donacion_id), None)
+        if not donacion_a_eliminar:
             raise HTTPException(status_code=404, detail="La donacion especifica no existe")
 
         semana_destino.donaciones = [d for d in semana_destino.donaciones if d.id != donacion_id]
 
         await self.repo.guardar(mes_doc)
-        return {"mensaje" : "Donacion eliminada exitosamente"}
+        return donacion_a_eliminar
 
     async def vaciar_donaciones_semana(self, year: int, mes: int, numero_semana: int) -> dict:
         
@@ -133,11 +134,13 @@ class DonacionService:
         
         semana_destino: Semana = self._obtener_semana_o_fallar(mes_doc, numero_semana)
 
+        donaciones_eliminadas = list(semana_destino.donaciones)
+
         semana_destino.donaciones = []
 
         await self.repo.guardar(mes_doc)
 
-        return {"mensaje" : f"Se han eliminado todas las donaciones de la semana {numero_semana}"}
+        return donaciones_eliminadas
 
 
     def _obtener_semana_o_fallar(self, mes_doc: MesDonacion, numero_semana: int) -> Semana:
@@ -158,4 +161,14 @@ class DonacionService:
         
         return mes_doc
 
+    async def contar_alimentos_mes_actual(self, year: int, mes: int) -> int:
+        mes_doc = await self.repo.buscar_por_mes(year, mes)
+        
+        if not mes_doc:
+            return 0
 
+        return sum(
+            donacion.cantidad
+            for semana in mes_doc.semanas
+            for donacion in semana.donaciones
+        )

@@ -9,6 +9,7 @@ from backend.perfiles.router import router as perfiles_router
 from backend.auth.router import router as auth_router
 from backend.donaciones.router import router as donaciones_router
 from backend.inventario.router import router as inventario_router
+from backend.metricas.router import router as metricas_router
 
 
 @asynccontextmanager
@@ -26,6 +27,7 @@ app.include_router(perfiles_router)
 app.include_router(auth_router)
 app.include_router(donaciones_router)
 app.include_router(inventario_router)
+app.include_router(metricas_router)
 
 # Templates Jinja2
 templates = Jinja2Templates(
@@ -44,11 +46,9 @@ app.mount(
 @app.get("/")
 def read_root(request: Request):
     return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={
-            "mensaje": "¡Backend y BD conectados!"
-        }
+        request = request,
+        name = "index.html", 
+        context = {"request": request, "mensaje": "Backend y base de datos conectada xd"}
     )
 
 

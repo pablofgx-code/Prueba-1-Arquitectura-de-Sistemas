@@ -1,13 +1,15 @@
 from pydantic import BaseModel, Field
+from datetime import date
 
 class InicializarMes(BaseModel):
-    year: int = Field(..., ge=2024)
-    mes: int = Field(..., ge=1, le=12)
+    year: int = Field(..., ge = 2024)
+    mes: int = Field(..., ge = 1, le = 12)
 
 class AgregarDonaciones(BaseModel): 
-    numero_semana: int = Field(..., ge=1, le=5)
-    tipo_alimento: str = Field(..., min_length=2)
-    cantidad: int = Field(..., ge=1)
+    numero_semana: int = Field(..., ge = 1, le = 5)
+    tipo_alimento: str = Field(..., min_length = 2)
+    cantidad: int = Field(..., ge = 1)
+    fecha_vencimiento: date = Field(..., description = "Fecha de vencimiento del lote")
 
 class ResumenTotalMes(BaseModel):
     year: int

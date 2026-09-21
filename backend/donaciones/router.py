@@ -4,7 +4,7 @@ from backend.donaciones.schemas import InicializarMes, AgregarDonaciones, Resume
 from backend.donaciones.models import MesDonacion
 from backend.donaciones.service import DonacionService
 from backend.donaciones.repository import DonacionRepository
-from backend.donaciones.orquestador import RegistrarDonacionOrquestador
+from backend.donaciones.orquestador import RegistrarDonacionOrquestador, EliminarDonacionOrquestador
 from backend.inventario.repository import InventarioRepository
 from backend.inventario.service import InventarioService
 
@@ -28,6 +28,13 @@ def get_registrar_donacion_orquestador(
     inventario_service = InventarioService(inventario_repo)
 
     return RegistrarDonacionOrquestador(donacion_service, inventario_service)
+
+def get_eliminar_donacion_orquestador(
+    donacion_service: DonacionService = Depends(get_donacion_service)
+) -> EliminarDonacionOrquestador:
+    inventario_repo = InventarioRepository()
+    inventario_service = InventarioService(inventario_repo)
+    return EliminarDonacionOrquestador(donacion_service, inventario_service)
 
 @router.post("/", response_model=MesDonacion)
 async def crear_mes(
@@ -93,15 +100,15 @@ async def borrar_donacion_especifica(
     mes: int,
     numero_semana: int, 
     donacion_id: str,
-    service: DonacionService = Depends(get_donacion_service)
+    orquestador: EliminarDonacionOrquestador = Depends(get_eliminar_donacion_orquestador)
 ):
-    return await service.eliminar_donacion_especifica(year, mes, numero_semana, donacion_id)
+    return await orquestador.eliminar_especifica(year, mes, numero_semana, donacion_id)
 
 @router.delete("/{year}/{mes}/semanas/{numero_semana}/donaciones")
 async def vaciar_donaciones_semana(
     year: int,
     mes: int,
     numero_semana: int, 
-    service: DonacionService = Depends(get_donacion_service)
+    orquestador: EliminarDonacionOrquestador = Depends(get_eliminar_donacion_orquestador)
 ):
-    return await service.vaciar_donaciones_semana(year, mes, numero_semana)
+    return await orquestador.vaciar_semana(year, mes, numero_semana)

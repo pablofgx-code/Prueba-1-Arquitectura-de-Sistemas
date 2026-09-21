@@ -11,8 +11,12 @@ class PerfilRepository:
 
     async def obtener_todos(self) -> List[Perfil]:
 
-        return await Perfil.find_all().to_list()
+        return await Perfil.find(Perfil.activo == True).to_list()
 
+    async def obtener_todos_historial(self) -> List[Perfil]:
+        
+        return await Perfil.find_all().to_list()
+ 
     async def buscar_por_rut(self, rut: str) -> Perfil:
 
         return await Perfil.find_one(Perfil.rut == rut)
@@ -23,6 +27,11 @@ class PerfilRepository:
 
         return perfil
 
+    async def eliminar(self, perfil: Perfil) -> None:
+
+        perfil.activo = False
+        
+        await perfil.save()
 
 
 
