@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, patch
 from beanie import PydanticObjectId
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from datetime import timedelta
 
 from main import app
@@ -15,7 +15,7 @@ from backend.auth.dependencies import obtener_admin_actual
 from backend.auth.repository import AdministradorRepository
 from backend.auth.router import get_auth_service
 from backend.auth.service import AuthService
-from backend.auth.schemas import AdministradorCreate, LoginData, SolicitudRecuperacion
+from backend.auth.schemas import AdministradorCreate, LoginData, SolicitudRecuperacion, CambiarPassword, RestablecerPassword
 
 client = TestClient(app)
 
@@ -150,6 +150,95 @@ async def test_servicio_login_exitoso():
         resultado = await service.autenticar_admin(LoginData(email="admin@test.com", password="password123"))
         
         assert resultado is not None
+
+def test_router_cambiar_password():
+    mock_service = AsyncMock()
+    mock_service.cambiar_password.return_value = {"mensaje": "OK"}
+    app.dependency_overrides[get_auth_service] = lambda: mock_service
+    
+    payload = {"password_actual": "vieja123", "nueva_password": "nueva123456"}
+    response = client.put("/api/auth/cambiar-password", json=payload)
+    assert response.status_code == 200
+
+def test_router_solicitar_recuperacion_password():
+    mock_service = AsyncMock()
+    mock_service.solicitar_recuperacion.return_value = {"mensaje": "OK"}
+    app.dependency_overrides[get_auth_service] = lambda: mock_service
+    
+    response = client.post("/api/auth/solicitar-recuperacion", json={"email": "a@a.com"})
+    assert response.status_code == 200
+
+def test_router_restablecer_password():
+    mock_service = AsyncMock()
+    mock_service.restablecer_password.return_value = {"mensaje": "OK"}
+    app.dependency_overrides[get_auth_service] = lambda: mock_service
+    
+    payload = {"token": "abc", "nueva_password": "nueva123456"}
+    response = client.post("/api/auth/restablecer-password", json=payload)
+    assert response.status_code == 200
+
+@pytest.mark.asyncio
+@patch("backend.auth.dependencies.jwt.decode")
+@patch("backend.auth.dependencies.Administrador.get")
+async def test_dependencia_obtener_admin_actual(mock_admin_get, mock_jwt_decode):
+    mock_jwt_decode.return_value = {"sub": "507f1f77bcf86cd799439011"}
+    
+    mock_admin = AsyncMock()
+    mock_admin.activo = True
+    mock_admin_get.return_value = mock_admin
+    
+    request = AsyncMock(spec=Request)
+    request.cookies.get.return_value = "Bearer tokenvalido"
+    
+    admin = await obtener_admin_actual(request)
+    assert admin.activo is True
+
+@pytest.mark.asyncio
+@patch("backend.auth.repository.Administrador")
+async def test_repository_metodos(mock_admin_model):
+    repo = AdministradorRepository()
+    
+    mock_admin_model.find_one = AsyncMock(return_value=None)
+    
+    await repo.buscar_por_email("test@test.com")
+    assert mock_admin_model.find_one.called
+    
+    admin_instance = AsyncMock()
+    admin_instance.insert = AsyncMock()
+    await repo.crear(admin_instance)
+    assert admin_instance.insert.called
+
+@pytest.mark.asyncio
+async def test_servicio_cambiar_password_exitoso():
+    repo = AsyncMock()
+    service = AuthService(repo)
+    
+    admin = AsyncMock()
+    admin.hashed_password = security.obtener_hash_password("vieja123")
+    
+    datos = CambiarPassword(password_actual="vieja123", nueva_password="nueva123456")
+    res = await service.cambiar_password(admin, datos)
+    assert "exitosa" in res["mensaje"]
+
+@pytest.mark.asyncio
+@patch("backend.auth.service.security.decodificar_token_recuperacion")
+async def test_servicio_restablecer_password_exitoso(mock_decodificar):
+    mock_decodificar.return_value = "admin@iglesia.com"
+    repo = AsyncMock()
+    admin = AsyncMock()
+    admin.activo = True
+    admin.hashed_password = security.obtener_hash_password("vieja123")
+    repo.buscar_por_email.return_value = admin
+    
+    service = AuthService(repo)
+    datos = RestablecerPassword(token="valido", nueva_password="nueva123456")
+    
+    res = await service.restablecer_password(datos)
+    assert "exitosamente" in res["mensaje"]
+
+def test_decodificar_token_recuperacion_invalido():
+    resultado = security.decodificar_token_recuperacion("esto_no_es_un_token_jwt")
+    assert resultado is None
 
 def teardown_module():
     app.dependency_overrides.clear()
