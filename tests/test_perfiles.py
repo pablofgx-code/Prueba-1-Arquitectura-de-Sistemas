@@ -19,7 +19,10 @@ from backend.perfiles.orquestador import RegistrarRetiroOrquestador
 
 client = TestClient(app)
 
-app.dependency_overrides[obtener_admin_actual] = lambda: {"nombre": "Admin", "activo": True}
+admin_mock = AsyncMock()
+admin_mock.nombre = "Admin"
+admin_mock.activo = True
+app.dependency_overrides[obtener_admin_actual] = lambda: admin_mock
 
 def test_router_listar_perfiles():
     mock_service = AsyncMock()
@@ -262,6 +265,3 @@ async def test_servicio_crear_perfil_inactivo():
     with pytest.raises(HTTPException) as exc:
         await service.crear_perfil(dto)
     assert "reactivar" in exc.value.detail
-
-def teardown_module():
-    app.dependency_overrides.clear()

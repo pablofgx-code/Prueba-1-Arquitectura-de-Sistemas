@@ -17,7 +17,11 @@ from backend.donaciones.orquestador import EliminarDonacionOrquestador
 from backend.donaciones.repository import DonacionRepository
 
 client = TestClient(app)
-app.dependency_overrides[obtener_admin_actual] = lambda: {"nombre": "Admin", "activo": True}
+
+admin_mock = AsyncMock()
+admin_mock.nombre = "Admin"
+admin_mock.activo = True
+app.dependency_overrides[obtener_admin_actual] = lambda: admin_mock
 
 @pytest.mark.asyncio
 async def test_servicio_metodos_principales():
@@ -143,6 +147,3 @@ async def test_donaciones_repository_basicos():
     assert doc_falso.save.called
     await repo.insertar(doc_falso)
     assert doc_falso.insert.called
-
-def teardown_module():
-    app.dependency_overrides.clear()

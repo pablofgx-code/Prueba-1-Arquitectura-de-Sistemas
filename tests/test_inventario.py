@@ -18,7 +18,10 @@ from backend.inventario.repository import InventarioRepository
 
 client = TestClient(app)
 
-app.dependency_overrides[obtener_admin_actual] = lambda: {"nombre": "Admin", "activo": True}
+admin_mock = AsyncMock()
+admin_mock.nombre = "Admin"
+admin_mock.activo = True
+app.dependency_overrides[obtener_admin_actual] = lambda: admin_mock
 
 def test_router_ver_bodega():
     mock_service = AsyncMock()
@@ -143,6 +146,3 @@ def test_cobertura_router_dependencia():
     from backend.inventario.router import get_inventario_service
     servicio = get_inventario_service()
     assert servicio is not None
-
-def teardown_module():
-    app.dependency_overrides.clear()

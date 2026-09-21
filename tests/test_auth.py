@@ -239,6 +239,3 @@ async def test_servicio_restablecer_password_exitoso(mock_decodificar):
 def test_decodificar_token_recuperacion_invalido():
     resultado = security.decodificar_token_recuperacion("esto_no_es_un_token_jwt")
     assert resultado is None
-
-def teardown_module():
-    app.dependency_overrides.clear()
