@@ -20,7 +20,7 @@ def test_pagina_principal():
 
 @pytest.mark.asyncio
 @patch("backend.database.init_beanie")
-@patch("backend.database.AsyncMotorClient")
+@patch("backend.database.AsyncMongoClient")
 async def test_iniciar_base_de_datos_exito(mock_motor, mock_init_beanie):
     with patch.dict(os.environ, {"MONGO_URL": "mongodb://localhost", "DATABASE_NAME": "test_db"}):
         await iniciar_base_de_datos()
