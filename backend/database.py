@@ -14,14 +14,13 @@ load_dotenv(find_dotenv())
 
 async def iniciar_base_de_datos():
 
-    url_base_datos = os.getenv(
-        "MONGO_URL",
-        "mongodb://localhost:27017"
-    )
 
     nombre_base_datos = os.getenv(
         "DATABASE_NAME",
         "iglesia_donaciones"
+    ) or os.getenv(
+        "MONGO_URL",
+        "mongodb://localhost:27017"
     )
 
     if not url_base_datos or not nombre_base_datos:
