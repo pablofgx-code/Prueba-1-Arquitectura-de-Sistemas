@@ -45,27 +45,35 @@ async def poblar_base_de_datos():
     # ============================================================
 
     if await Perfil.count() == 0:
-        perfil = Perfil(
-            nombre="Juan",
-            apellido="Pérez",
-            rut="12.345.678-9",
-            contacto="+56912345678",
-            fecha_nacimiento=date(1985, 5, 15),
-            edad=41,
-            situacion_calle=False,
-            motivo_situacion=None,
-            historial_retiros=[],
-            activo=True,
-        )
-
-        await perfil.insert()
-
-        logger.info("🟢 Seed: Perfil inicial creado.")
+        perfiles = [
+            Perfil(
+                nombre="Juan",
+                apellido="Pérez",
+                rut="12.345.678-9",
+                contacto="+56912345678",
+                fecha_nacimiento=date(1985, 5, 15),
+                edad=41,
+                situacion_calle=False,
+                activo=True,
+            ),
+            Perfil(
+                nombre="Ana",
+                apellido="González",
+                rut="20.111.222-3",
+                contacto="+56987654321",
+                fecha_nacimiento=date(1990, 8, 22),
+                edad=36,
+                situacion_calle=True,
+                motivo_situacion="Desempleo",
+                activo=True,
+            ),
+        ]
+        await Perfil.insert_many(perfiles)
+        logger.info("🟢 Seed: Perfiles iniciales creados.")
 
     # ============================================================
-    # 3. Seed de Donaciones
+    # 3. Donaciones
     # ============================================================
-
     if await MesDonacion.count() == 0:
         mes_octubre = MesDonacion(
             year=2026,
@@ -75,81 +83,49 @@ async def poblar_base_de_datos():
                 {
                     "numero_semana": 1,
                     "donaciones": [
-                        {
-                            "id": "don-001",
-                            "tipo_alimento": "Arroz",
-                            "cantidad": 25,
-                            "fecha_vencimiento": date(2027, 6, 30),
-                        },
-                        {
-                            "id": "don-002",
-                            "tipo_alimento": "Fideos",
-                            "cantidad": 40,
-                            "fecha_vencimiento": date(2027, 8, 15),
-                        },
+                        {"id": "don-001", "tipo_alimento": "Arroz", "cantidad": 25, "fecha_vencimiento": date(2027, 6, 30)},
+                        {"id": "don-002", "tipo_alimento": "Fideos", "cantidad": 40, "fecha_vencimiento": date(2027, 8, 15)},
                     ],
                 },
                 {
                     "numero_semana": 2,
                     "donaciones": [
-                        {
-                            "id": "don-003",
-                            "tipo_alimento": "Leche Entera",
-                            "cantidad": 15,
-                            "fecha_vencimiento": date(2026, 12, 1),
-                        },
+                        {"id": "don-003", "tipo_alimento": "Leche Entera", "cantidad": 15, "fecha_vencimiento": date(2026, 12, 1)},
+                        {"id": "don-004", "tipo_alimento": "Aceite", "cantidad": 10, "fecha_vencimiento": date(2028, 1, 1)},
                     ],
                 },
             ],
         )
-
         await mes_octubre.insert()
-
-        logger.info(
-            "🟢 Seed: Registros de donaciones de prueba creados."
-        )
+        logger.info("🟢 Seed: Donaciones de prueba creadas.")
 
     # ============================================================
-    # 4. Seed de Inventario
+    # 4. Inventario
     # ============================================================
-
     if await LotePerecible.count() == 0:
-        lote1 = LotePerecible(
-            tipo_alimento="Arroz",
-            cantidad_disponible=25,
-            fecha_vencimiento=date(2027, 6, 30),
-        )
-
-        lote2 = LotePerecible(
-            tipo_alimento="Leche Entera",
-            cantidad_disponible=15,
-            fecha_vencimiento=date(2026, 12, 1),
-        )
-
-        await LotePerecible.insert_many([
-            lote1,
-            lote2,
-        ])
-
+        lotes = [
+            LotePerecible(tipo_alimento="Arroz", cantidad_disponible=25, fecha_vencimiento=date(2027, 6, 30)),
+            LotePerecible(tipo_alimento="Leche Entera", cantidad_disponible=15, fecha_vencimiento=date(2026, 12, 1)),
+            LotePerecible(tipo_alimento="Aceite", cantidad_disponible=10, fecha_vencimiento=date(2028, 1, 1)),
+        ]
+        await LotePerecible.insert_many(lotes)
         logger.info("🟢 Seed: Lotes de inventario creados.")
 
     # ============================================================
-    # 5. Seed de Registro de Salidas
+    # 5. Registro de Salidas
     # ============================================================
-
     if await RegistroSalida.count() == 0:
-        salida = RegistroSalida(
-            fecha=datetime.now(),
-            rut_beneficiario="12.345.678-9",
-            alimentos_entregados=[
-                ItemLlevado(
-                    tipo_alimento="Fideos",
-                    cantidad=10,
-                )
-            ],
-        )
-
-        await salida.insert()
-
+        salidas = [
+            RegistroSalida(
+                fecha=datetime.now(),
+                rut_beneficiario="12.345.678-9",
+                alimentos_entregados=[ItemLlevado(tipo_alimento="Fideos", cantidad=10)],
+            ),
+            RegistroSalida(
+                fecha=datetime.now(),
+                rut_beneficiario="20.111.222-3",
+                alimentos_entregados=[ItemLlevado(tipo_alimento="Arroz", cantidad=5)],
+            ),
+        ]
+        await RegistroSalida.insert_many(salidas)
         logger.info("🟢 Seed: Historial de salidas creado.")
-
