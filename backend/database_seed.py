@@ -28,8 +28,7 @@ async def poblar_base_de_datos():
             nombre="Admin Iglesia",
             email="admin@iglesia.org",
             hashed_password=(
-                "$2b$12$eImiTXuWVxfM37uY4JANjOL."
-                "8844ZXE.tQ3B0k6eT1p3S6z/bCkW"
+                "$2b$12$jV0gSp2f733fSpDtiX9bRuutJXYHD1SDMAjbcVH.0MzWehXh1bOjC"
             ),
             activo=True,
         )
