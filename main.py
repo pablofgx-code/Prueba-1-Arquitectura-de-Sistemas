@@ -1,8 +1,16 @@
+import uvicorn
+
+from backend.database import iniciar_base_de_datos
+from backend.database_seed import poblar_base_de_datos
+
+
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-import uvicorn
+
+
+
 
 from backend.database import iniciar_base_de_datos
 from backend.perfiles.router import router as perfiles_router
@@ -15,6 +23,7 @@ from backend.metricas.router import router as metricas_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await iniciar_base_de_datos()
+    await poblar_base_de_datos()
     yield
 
 
