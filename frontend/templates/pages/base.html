@@ -6,14 +6,29 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
-<body>
-  <!-- Incluimos la navbar modular -->
-  <!--{% include "components/navbar.html" %}-->
+<body class="bg-light">
 
-  <!-- Bloque que se sobreescribe en cada página -->
-  <main class="container mt-4">
+   <!-- Incluimos la navbar modular -->
+  <!--{% include "components/navbar.html" %}-->
+  
+  <!--{# Nav global — cambia solo si agregás links a TODAS las páginas #}
+  <nav class="navbar navbar-expand bg-white border-bottom mb-4">
+    <div class="container" style="max-width: 900px;">
+      <a class="navbar-brand fw-bold" href="/">Donaciones</a>
+      {% block nav_items %}{% endblock %}
+    </div>
+  </nav> -->
+
+  <main class="container py-4" style="max-width: 900px;">
     {% block content %}{% endblock %}
   </main>
-  <script src="{{ url_for('static', path='js/script.js') }}"></script>
+
+  {# Container global de toasts — se usa desde cualquier página #}
+  <div class="toast-container position-fixed top-0 end-0 p-3" id="toast-container"></div>
+
+  <script src="...bootstrap.bundle.min.js"></script>
+  {% block extra_scripts %}{% endblock %}
 </body>
 </html>
+
+
