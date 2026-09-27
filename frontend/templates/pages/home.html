@@ -1,0 +1,61 @@
+
+{% extends "pages/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1 class="mb-4">Panel de Donaciones</h1>
+
+  <!-- Resumen general -->
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card text-bg-primary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Personas ingresadas</h5>
+          <p class="card-text fs-3">{{ total_personas }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card text-bg-success mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Donaciones hasta la fecha</h5>
+          <p class="card-text fs-3">{{ total_donaciones }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card text-bg-warning mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Alimentos perecibles acumulados</h5>
+          <p class="card-text fs-3">{{ total_perecibles }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detalle por alimento -->
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <h3>Detalle semanal de alimentos perecibles</h3>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in detalle_perecibles %}
+          <tr>
+            <td>{{ item.nombre }}</td>
+            <td>{{ item.cantidad }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,3 +1,4 @@
+from starlette.responses import HTMLResponse
 import uvicorn
 
 from backend.database import iniciar_base_de_datos
@@ -52,12 +53,48 @@ app.mount(
 )
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse, name="home")
 def read_root(request: Request):
     return templates.TemplateResponse(
         request = request,
         name = "index.html", 
         context = {"request": request, "mensaje": "Backend y base de datos conectada xd"}
+    )
+
+@app.get("/login", response_class=HTMLResponse, name="login_page")
+def login_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/login/login.html",
+        context={"active_page": "login"}
+    )
+
+@app.get("/cambiar-contrasena", response_class=HTMLResponse, name="cambiar_contrasena")
+def cambiar_contrasena_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/login/cambiar_contrasena.html",
+        context={"active_page": "cambiar_contrasena"}
+    )
+@app.get("/donaciones-semanales", response_class=HTMLResponse, name="donaciones_semanales")
+def donaciones_semanales(request: Request):
+    return templates.TemplateResponse(
+        "pages/donaciones_semanales.html",
+        {"request": request, "active_page": "donaciones_semanales"}
+    )
+
+@app.get("/personas", response_class=HTMLResponse, name="personas")
+def personas(request: Request):
+    return templates.TemplateResponse(
+        "pages/personas.html",
+        {"request": request, "active_page": "personas"}
+    )
+
+@app.get("/donaciones-mensuales", response_class=HTMLResponse, name="donaciones_mensuales")
+def donaciones_mensuales(request: Request):
+    return templates.TemplateResponse(
+        "pages/donaciones_mensuales.html",
+        {"request": request, "active_page": "donaciones_mensuales"}
     )
 
 

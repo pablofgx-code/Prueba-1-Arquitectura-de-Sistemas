@@ -1,0 +1,22 @@
+{% extends "pages/base.html" %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 400px;">
+  <h2 class="text-center mb-4">Cambiar Contraseña</h2>
+
+  <form hx-put="{{ url_for('cambiar_contrasena') }}" hx-target="#change-response" hx-swap="innerHTML">
+    <div class="mb-3">
+      <label for="correo" class="form-label">Correo</label>
+      <input type="email" class="form-control" id="correo" name="correo" required>
+    </div>
+    <div class="mb-3">
+      <label for="nueva_password" class="form-label">Nueva Contraseña</label>
+      <input type="password" class="form-control" id="nueva_password" name="nueva_password" required>
+    </div>
+
+    <button type="submit" class="btn btn-warning w-100">Actualizar Contraseña</button>
+  </form>
+
+  <div id="change-response" class="mt-3"></div>
+</div>
+{% endblock %}
