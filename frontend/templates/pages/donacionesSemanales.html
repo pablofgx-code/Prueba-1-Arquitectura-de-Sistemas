@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Donaciones Semanales - Mock</title>
+<style>
+  @import url('../../static/css/donacionesSemanales.css');
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Donaciones Semanales</h1>
+    <div class="month-badge" id="month-badge"></div>
+  </header>
+
+  <div id="weeks-container"></div>
+
+  <button class="add-week-btn" id="add-week-btn">
+    <span class="plus-sign">+</span> Agregar semana
+  </button>
+
+  <section class="totales">
+    <h2>
+      Donaciones totales del mes
+      <span id="total-count">0 items</span>
+    </h2>
+    <ul class="totales-list" id="totales-list">
+      <li class="totales-empty">Aún no hay donaciones registradas</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  // ===== Estado (simula el schema MesDonacion) =====
+  const mesDonacion = {
+    year: new Date().getFullYear(),
+    mes: new Date().getMonth() + 1,
+    fecha_creacion: new Date().toISOString().slice(0, 10),
+    semanas: []
+  };
+
+  const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+  const uid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+
+  // ===== Render =====
+  function render() {
+    document.getElementById('month-badge').textContent =
+      `${MESES[mesDonacion.mes - 1]} ${mesDonacion.year}`;
+
+    const container = document.getElementById('weeks-container');
+    container.innerHTML = '';
+
+    mesDonacion.semanas.forEach((semana, idx) => {
+      container.appendChild(renderSemana(semana, idx));
+    });
+
+    // Botón agregar semana deshabilitado si ya hay 4
+    const btn = document.getElementById('add-week-btn');
+    btn.disabled = mesDonacion.semanas.length >= 4;
+
+    renderTotales();
+  }
+
+  function renderSemana(semana, idx) {
+    const total = semana.donaciones.reduce((s, d) => s + d.cantidad, 0);
+
+    const div = document.createElement('div');
+    div.className = 'card week';
+    div.innerHTML = `
+      <div class="week-header" data-toggle="${idx}">
+        <div class="week-title">
+          <span class="chevron">▶</span>
+          Semana ${semana.numero_semana}
+          <span class="week-count">${semana.donaciones.length} alimentos · ${total} u.</span>
+        </div>
+      </div>
+      <div class="week-body">
+        <div class="add-form">
+          <input type="text" placeholder="Alimento (ej: Arroz)" data-food="${idx}">
+          <input type="number" placeholder="Cantidad" min="1" data-qty="${idx}">
+          <input type="date" data-date="${idx}">
+          <button data-add="${idx}">Agregar</button>
+        </div>
+        <ul class="donation-list">
+          ${semana.donaciones.length === 0
+            ? '<li class="empty-state">Sin donaciones esta semana</li>'
+            : semana.donaciones.map((d, didx) => `
+              <li class="donation-item">
+                <span class="food">${escapeHtml(d.tipo_alimento)}</span>
+                <span class="meta">
+                  <span>Vence: ${d.fecha_vencimiento}</span>
+                  <span class="qty">${d.cantidad}</span>
+                  <button class="delete-btn" data-del="${idx}-${didx}" title="Eliminar">✕</button>
+                </span>
+              </li>
+            `).join('')
+          }
+        </ul>
+      </div>
+    `;
+
+    // Toggle abrir/cerrar
+    div.querySelector('.week-header').addEventListener('click', () => {
+      div.classList.toggle('open');
+    });
+
+    // Botón agregar alimento
+    div.querySelector(`[data-add="${idx}"]`).addEventListener('click', () => {
+      const foodInput = div.querySelector(`[data-food="${idx}"]`);
+      const qtyInput  = div.querySelector(`[data-qty="${idx}"]`);
+      const dateInput = div.querySelector(`[data-date="${idx}"]`);
+
+      const tipo = foodInput.value.trim();
+      const cant = parseInt(qtyInput.value, 10);
+      const fecha = dateInput.value;
+
+      if (!tipo || !cant || cant < 1 || !fecha) {
+        alert('Completá todos los campos (alimento, cantidad ≥ 1 y fecha de vencimiento).');
+        return;
+      }
+
+      semana.donaciones.push({
+        id: uid(),
+        tipo_alimento: tipo,
+        cantidad: cant,
+        fecha_vencimiento: fecha
+      });
+
+      render();
+      // Reabrir la semana recién modificada
+      const weeks = document.querySelectorAll('.week');
+      if (weeks[idx]) weeks[idx].classList.add('open');
+    });
+
+    // Botones eliminar
+    div.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const [sid, did] = btn.dataset.del.split('-').map(Number);
+        mesDonacion.semanas[sid].donaciones.splice(did, 1);
+        render();
+        const weeks = document.querySelectorAll('.week');
+        if (weeks[sid]) weeks[sid].classList.add('open');
+      });
+    });
+
+    return div;
+  }
+
+  function renderTotales() {
+    const totales = {};
+    mesDonacion.semanas.forEach(s => {
+      s.donaciones.forEach(d => {
+        totales[d.tipo_alimento] = (totales[d.tipo_alimento] || 0) + d.cantidad;
+      });
+    });
+
+    const list = document.getElementById('totales-list');
+    const entries = Object.entries(totales);
+
+    document.getElementById('total-count').textContent =
+      `${entries.length} ${entries.length === 1 ? 'alimento' : 'alimentos'}`;
+
+    if (entries.length === 0) {
+      list.innerHTML = '<li class="totales-empty">Aún no hay donaciones registradas</li>';
+      return;
+    }
+
+    list.innerHTML = entries.map(([tipo, cant]) => `
+      <li class="total-item">
+        <span>${escapeHtml(tipo)}</span>
+        <span class="total-qty">${cant}</span>
+      </li>
+    `).join('');
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
+  // ===== Acción: agregar semana =====
+  document.getElementById('add-week-btn').addEventListener('click', () => {
+    if (mesDonacion.semanas.length >= 4) return;
+    const numero = mesDonacion.semanas.length + 1;
+    mesDonacion.semanas.push({
+      numero_semana: numero,
+      donaciones: []
+    });
+    render();
+    // Abrir la nueva semana automáticamente
+    const weeks = document.querySelectorAll('.week');
+    if (weeks[weeks.length - 1]) weeks[weeks.length - 1].classList.add('open');
+  });
+
+  // ===== Init =====
+  render();
+</script>
+</body>
+</html>
