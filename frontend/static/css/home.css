@@ -1,0 +1,55 @@
+ body { background: #f4f6f9; }
+    .stat-card {
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      overflow: hidden;
+      position: relative;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0,0,0,.12);
+    }
+    .stat-card .icon-bg {
+      position: absolute;
+      right: -10px;
+      bottom: -20px;
+      font-size: 7rem;
+      opacity: .15;
+      line-height: 1;
+    }
+    .stat-card .card-title {
+      font-size: .9rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      opacity: .9;
+      margin-bottom: .5rem;
+    }
+    .stat-card .value {
+      font-size: 2.4rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .stat-card .hint {
+      font-size: .8rem;
+      opacity: .85;
+      margin-top: .5rem;
+    }
+    .bg-grad-primary { background: linear-gradient(135deg, #4e73df, #224abe); }
+    .bg-grad-success { background: linear-gradient(135deg, #1cc88a, #13855c); }
+    .bg-grad-warning { background: linear-gradient(135deg, #f6c23e, #dda20a); }
+    .panel {
+      background: #fff;
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+    .table thead th {
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: #6c757d;
+      border-bottom: 2px solid #e9ecef;
+    }
+    .progress { height: 6px; border-radius: 6px; }
