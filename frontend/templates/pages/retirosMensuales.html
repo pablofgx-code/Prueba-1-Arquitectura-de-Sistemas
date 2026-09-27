@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Registro de Retiros de Alimentos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('../../static/css/retirosMensuales.css');
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Programa de apoyo alimentario</div>
+    <h1>Registro de retiros mensuales</h1>
+    <p class="sub">Revisa qué personas retiraron alimentos cada mes. Los meses futuros aparecen vacíos hasta que llegan.</p>
+  </header>
+  <div class="ledger" id="ledger"></div>
+</div>
+
+<div class="fab-wrap">
+  <div class="fab-tip">Descargar reporte Excel</div>
+  <button class="fab" id="downloadBtn" aria-label="Descargar reporte Excel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
+  </button>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" id="modalClose" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+    <h2>Añadir persona</h2>
+    <p class="hint">Busca por RUT o nombre en el registro para marcar su retiro de este mes.</p>
+    <input type="text" class="search-input" id="searchInput" placeholder="Ej: 12.345.678-9 o nombre">
+    <div class="result-list" id="resultList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+// Registro de personas ingresadas (mock, formato ligado a PerfilResponse)
+const PERSONAS = [
+  { id:"p1", nombre:"María Fernanda Soto Ibarra", rut:"12.345.678-9", historial_retiros:["2026-01-14","2026-02-11","2026-04-08","2026-07-09"] },
+  { id:"p2", nombre:"José Luis Pérez Muñoz",       rut:"9.876.543-2",  historial_retiros:["2026-01-14","2026-03-12","2026-05-13","2026-06-10","2026-08-11"] },
+  { id:"p3", nombre:"Carolina Andrea Rojas Vidal", rut:"15.222.109-K", historial_retiros:["2026-02-11","2026-03-12","2026-07-09","2026-08-11"] },
+  { id:"p4", nombre:"Pedro Antonio Lagos Fuentes", rut:"11.987.654-3", historial_retiros:["2026-04-08","2026-06-10"] },
+  { id:"p5", nombre:"Francisca Javiera Díaz Torres", rut:"17.654.321-5", historial_retiros:[] },
+  { id:"p6", nombre:"Manuel Ignacio Castro Bravo", rut:"13.456.789-1", historial_retiros:["2026-01-14","2026-02-11","2026-04-08","2026-05-13","2026-06-10","2026-07-09","2026-08-11"] },
+  { id:"p7", nombre:"Valentina Paz Herrera Contreras", rut:"16.111.222-9", historial_retiros:["2026-03-12","2026-08-11"] },
+  { id:"p8", nombre:"Diego Alonso Vergara Silva", rut:"10.333.444-7", historial_retiros:["2026-05-13"] },
+];
+
+const now = new Date();
+const CUR_Y = now.getFullYear();
+const CUR_M = now.getMonth(); // 0-indexed
+
+function retiroEnMes(persona, y, m){
+  return persona.historial_retiros.some(d=>{
+    const dt = new Date(d+"T00:00:00");
+    return dt.getFullYear()===y && dt.getMonth()===m;
+  });
+}
+
+function buildLedger(){
+  const ledger = document.getElementById("ledger");
+  ledger.innerHTML = "";
+  MESES.forEach((mes, idx)=>{
+    const isFuture = idx > CUR_M;
+    const isCurrent = idx === CUR_M;
+    const row = document.createElement("div");
+    row.className = "month-row";
+    row.dataset.month = idx;
+
+    const count = isFuture ? null : PERSONAS.filter(p=>retiroEnMes(p, CUR_Y, idx)).length;
+
+    row.innerHTML = `
+      <button class="month-head" aria-expanded="false">
+        <span class="month-name">${mes}<span class="yr">${CUR_Y}</span>${isCurrent?'<span class="current-tag">Mes actual</span>':''}</span>
+        <span class="month-meta">
+          <span class="count-badge">${isFuture ? '—' : `<b>${count}</b> de ${PERSONAS.length}`}</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>
+        </span>
+      </button>
+      <div class="month-body"><div class="month-inner"></div></div>
+    `;
+
+    const inner = row.querySelector(".month-inner");
+    if(isFuture){
+      inner.innerHTML = `<div class="empty-state">Este mes aún no ha llegado. La lista de retiros se mostrará cuando comience.</div>`;
+    } else {
+      inner.appendChild(renderTable(idx));
+      if(isCurrent){
+        const bar = document.createElement("div");
+        bar.className = "add-bar";
+        bar.innerHTML = `<button class="btn-add" id="addPersonBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+          Añadir persona
+        </button>`;
+        inner.appendChild(bar);
+      }
+    }
+
+    row.querySelector(".month-head").addEventListener("click", (e)=>{
+      const wasOpen = row.classList.contains("open");
+      document.querySelectorAll(".month-row.open").forEach(r=>{
+        r.classList.remove("open");
+        r.querySelector(".month-head").setAttribute("aria-expanded","false");
+      });
+      if(!wasOpen){
+        row.classList.add("open");
+        row.querySelector(".month-head").setAttribute("aria-expanded","true");
+      }
+    });
+
+    ledger.appendChild(row);
+  });
+
+  const addBtn = document.getElementById("addPersonBtn");
+  if(addBtn) addBtn.addEventListener("click", openModal);
+}
+
+function renderTable(monthIdx){
+  const table = document.createElement("table");
+  table.innerHTML = `
+    <thead><tr><th>Persona</th><th>Retiro</th></tr></thead>
+    <tbody>
+      ${PERSONAS.map(p=>{
+        const si = retiroEnMes(p, CUR_Y, monthIdx);
+        return `<tr>
+          <td>
+            <div class="persona-nombre">${p.nombre}</div>
+            <div class="persona-rut">${p.rut}</div>
+          </td>
+          <td>
+            <span class="status ${si?'si':'no'}"><span class="dot"></span>${si?'Sí retiró':'No retiró'}</span>
+          </td>
+        </tr>`;
+      }).join("")}
+    </tbody>
+  `;
+  return table;
+}
+
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+// --- Modal: añadir persona al mes actual ---
+const overlay = document.getElementById("modalOverlay");
+const searchInput = document.getElementById("searchInput");
+const resultList = document.getElementById("resultList");
+
+function openModal(){
+  overlay.classList.add("show");
+  searchInput.value = "";
+  renderResults("");
+  setTimeout(()=>searchInput.focus(), 50);
+}
+function closeModal(){ overlay.classList.remove("show"); }
+
+function renderResults(query){
+  const q = query.trim().toLowerCase().replace(/\./g,"");
+  const pool = PERSONAS.filter(p=>{
+    const yaRetiro = retiroEnMes(p, CUR_Y, CUR_M);
+    if(yaRetiro) return false;
+    if(!q) return true;
+    return p.nombre.toLowerCase().includes(q) || p.rut.toLowerCase().replace(/\./g,"").includes(q);
+  });
+  if(pool.length===0){
+    resultList.innerHTML = `<div class="no-results">No se encontraron personas pendientes con ese RUT o nombre.</div>`;
+    return;
+  }
+  resultList.innerHTML = pool.map(p=>`
+    <div class="result-row" data-id="${p.id}">
+      <div class="info"><b>${p.nombre}</b><span>${p.rut}</span></div>
+      <button class="btn-mini" data-id="${p.id}">Agregar</button>
+    </div>
+  `).join("");
+  resultList.querySelectorAll(".btn-mini").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const persona = PERSONAS.find(p=>p.id===btn.dataset.id);
+      const todayIso = new Date().toISOString().slice(0,10);
+      persona.historial_retiros.push(todayIso);
+      closeModal();
+      buildLedger();
+      const openRow = document.querySelector(`.month-row[data-month="${CUR_M}"]`);
+      openRow.classList.add("open");
+      showToast(`${persona.nombre.split(" ")[0]} añadido al retiro de ${MESES[CUR_M]}`);
+    });
+  });
+}
+
+searchInput.addEventListener("input", ()=>renderResults(searchInput.value));
+document.getElementById("modalClose").addEventListener("click", closeModal);
+overlay.addEventListener("click", (e)=>{ if(e.target===overlay) closeModal(); });
+document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeModal(); });
+
+// --- Descarga Excel: personas (columna) x meses (fila) ---
+document.getElementById("downloadBtn").addEventListener("click", ()=>{
+  const header = ["Mes", ...PERSONAS.map(p=>p.nombre)];
+  const rows = [header];
+  for(let m=0; m<=CUR_M; m++){
+    const row = [`${MESES[m]} ${CUR_Y}`];
+    PERSONAS.forEach(p=> row.push(retiroEnMes(p, CUR_Y, m) ? "Sí" : "No"));
+    rows.push(row);
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws["!cols"] = [{wch:16}, ...PERSONAS.map(()=>({wch:22}))];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Retiros");
+  XLSX.writeFile(wb, `retiros_alimentos_${CUR_Y}.xlsx`);
+  showToast("Reporte Excel descargado");
+});
+
+buildLedger();
+// abre el mes actual por defecto
+document.querySelector(`.month-row[data-month="${CUR_M}"]`).classList.add("open");
+document.querySelector(`.month-row[data-month="${CUR_M}"] .month-head`).setAttribute("aria-expanded","true");
+</script>
+</body>
+</html>
