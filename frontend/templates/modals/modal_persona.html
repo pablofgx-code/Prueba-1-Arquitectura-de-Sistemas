@@ -1,0 +1,125 @@
+<!-- =========================================================
+     Modal · Añadir Persona
+     Estructura basada en el Documento Perfil (Beanie)
+     ========================================================= -->
+<div class="modal fade" id="modalPersona" tabindex="-1"
+     aria-labelledby="modalPersonaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <form id="formPersona" novalidate>
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalPersonaLabel">
+            <i class="bi bi-person-plus-fill me-2"></i>Añadir persona
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <!-- ============ DATOS PERSONALES ============ -->
+          <h6 class="text-muted text-uppercase small mb-3">Datos personales</h6>
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="nombre" name="nombre"
+                     placeholder="Ej: María" required maxlength="80">
+              <div class="invalid-feedback">Ingresa el nombre.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="apellido" class="form-label">Apellido <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="apellido" name="apellido"
+                     placeholder="Ej: González" required maxlength="80">
+              <div class="invalid-feedback">Ingresa el apellido.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="rut" class="form-label">RUT <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="rut" name="rut"
+                     placeholder="Ej: 12.345.678-9" required
+                     pattern="^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$">
+              <div class="invalid-feedback">Formato esperado: 12.345.678-9</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="contacto" class="form-label">Contacto</label>
+              <input type="text" class="form-control" id="contacto" name="contacto"
+                     placeholder="Teléfono o correo (opcional)" maxlength="120">
+              <div class="form-text">Opcional.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="fecha_nacimiento" class="form-label">
+                Fecha de nacimiento <span class="text-danger">*</span>
+              </label>
+              <input type="date" class="form-control" id="fecha_nacimiento"
+                     name="fecha_nacimiento" required>
+              <div class="invalid-feedback">Selecciona la fecha de nacimiento.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="edad" class="form-label">Edad</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="edad" name="edad"
+                       readonly tabindex="-1" placeholder="—">
+                <span class="input-group-text">años</span>
+              </div>
+              <div class="form-text">Se calcula desde la fecha de nacimiento.</div>
+            </div>
+
+          </div>
+
+          <!-- ============ SITUACIÓN ============ -->
+          <hr class="my-4">
+          <h6 class="text-muted text-uppercase small mb-3">Situación</h6>
+          <div class="row g-3">
+
+            <div class="col-12">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch"
+                       id="situacion_calle" name="situacion_calle">
+                <label class="form-check-label" for="situacion_calle">
+                  Se encuentra en situación de calle
+                </label>
+              </div>
+            </div>
+
+            <div class="col-12 d-none" id="wrapperMotivo">
+              <label for="motivo_situacion" class="form-label">Motivo de la situación</label>
+              <textarea class="form-control" id="motivo_situacion" name="motivo_situacion"
+                        rows="2" maxlength="500"
+                        placeholder="Describe brevemente el motivo..."></textarea>
+            </div>
+
+            <div class="col-12">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch"
+                       id="activo" name="activo" checked>
+                <label class="form-check-label" for="activo">Perfil activo</label>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="alert alert-light border mt-4 mb-0 small text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            El historial de retiros se gestionará desde el perfil una vez creado.
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i> Guardar persona
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
