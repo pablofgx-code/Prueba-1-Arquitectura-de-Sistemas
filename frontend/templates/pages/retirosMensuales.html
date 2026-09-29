@@ -44,16 +44,7 @@
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 // Registro de personas ingresadas (mock, formato ligado a PerfilResponse)
-const PERSONAS = [
-  { id:"p1", nombre:"María Fernanda Soto Ibarra", rut:"12.345.678-9", historial_retiros:["2026-01-14","2026-02-11","2026-04-08","2026-07-09"] },
-  { id:"p2", nombre:"José Luis Pérez Muñoz",       rut:"9.876.543-2",  historial_retiros:["2026-01-14","2026-03-12","2026-05-13","2026-06-10","2026-08-11"] },
-  { id:"p3", nombre:"Carolina Andrea Rojas Vidal", rut:"15.222.109-K", historial_retiros:["2026-02-11","2026-03-12","2026-07-09","2026-08-11"] },
-  { id:"p4", nombre:"Pedro Antonio Lagos Fuentes", rut:"11.987.654-3", historial_retiros:["2026-04-08","2026-06-10"] },
-  { id:"p5", nombre:"Francisca Javiera Díaz Torres", rut:"17.654.321-5", historial_retiros:[] },
-  { id:"p6", nombre:"Manuel Ignacio Castro Bravo", rut:"13.456.789-1", historial_retiros:["2026-01-14","2026-02-11","2026-04-08","2026-05-13","2026-06-10","2026-07-09","2026-08-11"] },
-  { id:"p7", nombre:"Valentina Paz Herrera Contreras", rut:"16.111.222-9", historial_retiros:["2026-03-12","2026-08-11"] },
-  { id:"p8", nombre:"Diego Alonso Vergara Silva", rut:"10.333.444-7", historial_retiros:["2026-05-13"] },
-];
+let PERSONAS = [];
 
 const now = new Date();
 const CUR_Y = now.getFullYear();
@@ -220,10 +211,26 @@ document.getElementById("downloadBtn").addEventListener("click", ()=>{
   showToast("Reporte Excel descargado");
 });
 
-buildLedger();
-// abre el mes actual por defecto
-document.querySelector(`.month-row[data-month="${CUR_M}"]`).classList.add("open");
-document.querySelector(`.month-row[data-month="${CUR_M}"] .month-head`).setAttribute("aria-expanded","true");
+async function iniciarRetiros() {
+  const res = await fetch('/api/perfiles/listar', { credentials: 'include' });
+  if (res.ok) {
+    const data = await res.json();
+    PERSONAS = data.map(p => ({
+      id: p.id,
+      nombre: `${p.nombre} ${p.apellido}`,
+      rut: p.rut,
+      historial_retiros: p.historial_retiros || []
+    }));
+  }
+  buildLedger();
+  const mesActualRow = document.querySelector(`.month-row[data-month="${CUR_M}"]`);
+  if (mesActualRow) {
+    mesActualRow.classList.add("open");
+    mesActualRow.querySelector(".month-head").setAttribute("aria-expanded", "true");
+  }
+}
+
+iniciarRetiros();s
 </script>
 </body>
 </html>

@@ -90,7 +90,7 @@
     });
 
     /* Envío */
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       e.stopPropagation();
 
@@ -104,52 +104,50 @@
         ? inputMotivo.value.trim()
         : null;
 
-      /* Payload alineado con el Documento Perfil (Beanie) */
       const payload = {
         nombre:            document.getElementById('nombre').value.trim(),
         apellido:          document.getElementById('apellido').value.trim(),
         rut:               document.getElementById('rut').value.trim(),
         contacto:          document.getElementById('contacto').value.trim() || null,
-        fecha_nacimiento:  inputFecha.value,             // 'YYYY-MM-DD'
+        fecha_nacimiento:  inputFecha.value,
         edad:              parseInt(inputEdad.value, 10) || 0,
         situacion_calle:   situacionCalle,
-        motivo_situacion:  motivo,
-        historial_retiros: [],
-        activo:            document.getElementById('activo').checked
+        motivo_situacion:  motivo
       };
 
-      console.log('Payload Perfil →', payload);
-      /* TODO: aquí va el POST al backend, p.ej. con fetch:
-         fetch('/api/perfiles', {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify(payload)
-         });
-      */
+      try {
+        const res = await fetch('/api/perfiles/registrar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
 
-      /* Actualiza métrica y muestra confirmación */
-      totalPersonas += 1;
-      actualizarContadorPersonas();
+        if (!res.ok) {
+          alert(data.detail || 'Error al registrar la persona');
+          return;
+        }
 
-      if (alerta && alertaTxt) {
-        alertaTxt.textContent =
-          `Persona "${payload.nombre} ${payload.apellido}" añadida correctamente.`;
-        alerta.classList.remove('d-none');
-        alerta.classList.add('show');
-        setTimeout(() => {
-          alerta.classList.remove('show');
-          alerta.classList.add('d-none');
-        }, 5000);
+        totalPersonas += 1;
+        actualizarContadorPersonas();
+
+        if (alerta && alertaTxt) {
+          alertaTxt.textContent =
+            `Persona "${payload.nombre} ${payload.apellido}" añadida correctamente.`;
+          alerta.classList.remove('d-none');
+          alerta.classList.add('show');
+        }
+
+        form.reset();
+        form.classList.remove('was-validated');
+        inputFecha.valueAsDate = new Date();
+        inputEdad.value = calcularEdad(inputFecha.value);
+        wrapperMot.classList.add('d-none');
+        modal.hide();
+      } catch (err) {
+        console.error('Error al guardar perfil:', err);
       }
-
-      /* Limpieza y cierre */
-      form.reset();
-      form.classList.remove('was-validated');
-      inputFecha.valueAsDate = new Date();
-      inputEdad.value = calcularEdad(inputFecha.value);
-      wrapperMot.classList.add('d-none');
-      document.getElementById('activo').checked = true;
-      modal.hide();
     });
 
     actualizarContadorPersonas();

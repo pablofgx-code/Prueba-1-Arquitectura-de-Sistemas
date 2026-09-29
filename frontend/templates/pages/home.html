@@ -10,198 +10,226 @@
 </head>
 
 <body>
-<div class="container py-5">
+  <!-- Barra de navegación superior -->
+  {% include "components/navbar.html" %}
 
-  <!-- ============ ENCABEZADO ============ -->
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <div>
-      <h1 class="h3 mb-0">Panel de Donaciones</h1>
-      <small class="text-muted">Resumen general · mes en curso</small>
-    </div>
-    <div class="d-flex gap-2">
-      <button type="button" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-clockwise"></i> Actualizar
-      </button>
-      <!-- Sin data-bs-toggle: lo abre JS para evitar doble binding -->
-      <button type="button" class="btn btn-primary btn-sm" id="btnAbrirPersona">
-        <i class="bi bi-person-plus-fill"></i> Añadir persona
-      </button>
-    </div>
-  </div>
+  <div class="container py-5">
 
-  <!-- Alerta de confirmación -->
-  <div id="alertaPersona" class="alert alert-success alert-dismissible fade d-none" role="alert">
-    <i class="bi bi-check-circle-fill me-2"></i><span id="alertaPersonaTexto"></span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-  </div>
-
-  <!-- ============ MÉTRICAS ============ -->
-  <div class="row g-4">
-    <div class="col-md-6">
-      <div class="card stat-card bg-grad-primary h-100">
-        <div class="card-body">
-          <div class="card-title">Personas ingresadas (mes)</div>
-          <div class="value" id="contadorPersonas">1.248</div>
-          <div class="hint"><i class="bi bi-arrow-up-right"></i> +82 esta semana</div>
-          <i class="bi bi-people-fill icon-bg"></i>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-6">
-      <div class="card stat-card bg-grad-success h-100">
-        <div class="card-body">
-          <div class="card-title">Donaciones hasta la fecha (mes)</div>
-          <div class="value">3.512</div>
-          <div class="hint"><i class="bi bi-arrow-up-right"></i> +147 esta semana</div>
-          <i class="bi bi-box2-heart-fill icon-bg"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ DETALLE SEMANAL DE PERECIBLES ============ -->
-  <div class="panel mt-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+    <!-- ============ ENCABEZADO ============ -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
       <div>
-        <h5 class="mb-0">Detalle de alimentos perecibles</h5>
-        <small class="text-muted">
-          Disponibles hasta la última semana ingresada ·
-          <span id="etiquetaSemana">Semana 4 · 22 – 28 sep</span>
-        </small>
+        <h1 class="h3 mb-0">Panel de Donaciones</h1>
+        <small class="text-muted">Resumen general · mes en curso</small>
       </div>
-      <div class="d-flex align-items-center gap-2">
-        <label for="selectSemana" class="form-label mb-0 small text-muted text-nowrap">Semana:</label>
-        <select id="selectSemana" class="form-select form-select-sm" style="width: auto;">
-          <option value="1">Semana 1 · 01 – 07 sep</option>
-          <option value="2">Semana 2 · 08 – 14 sep</option>
-          <option value="3">Semana 3 · 15 – 21 sep</option>
-          <option value="4" selected>Semana 4 · 22 – 28 sep (última)</option>
-        </select>
-        <span class="badge text-bg-light text-nowrap">Actualizado hoy</span>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnActualizarDashboard">
+          <i class="bi bi-arrow-clockwise"></i> Actualizar
+        </button>
+        <!-- Sin data-bs-toggle: lo abre JS para evitar doble binding -->
+        <button type="button" class="btn btn-primary btn-sm" id="btnAbrirPersona">
+          <i class="bi bi-person-plus-fill"></i> Añadir persona
+        </button>
       </div>
     </div>
 
-    <div class="table-responsive">
-      <table class="table align-middle mb-0">
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th style="width: 35%;">Distribución</th>
-            <th class="text-center">Vence en</th>
-            <th class="text-end">Cantidad disponible</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyPerecibles"></tbody>
-      </table>
+    <!-- Alerta de confirmación -->
+    <div id="alertaPersona" class="alert alert-success alert-dismissible fade d-none" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i><span id="alertaPersonaTexto"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 pt-3 border-top">
-      <div class="d-flex flex-wrap gap-2">
-        <span class="badge text-bg-light"><i class="bi bi-box-seam me-1"></i><span id="totalProductos">0</span> productos</span>
-        <span class="badge text-bg-light"><i class="bi bi-basket me-1"></i><span id="totalPeso">0</span> kg</span>
-        <span class="badge text-bg-light"><i class="bi bi-123 me-1"></i><span id="totalUnidades">0</span> unidades / litros</span>
+    <!-- ============ MÉTRICAS ============ -->
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card stat-card bg-grad-primary h-100">
+          <div class="card-body">
+            <div class="card-title">Personas ingresadas (total activas)</div>
+            <div class="value" id="contadorPersonas">0</div>
+            <div class="hint"><i class="bi bi-people"></i> Beneficiarios registrados en el sistema</div>
+            <i class="bi bi-people-fill icon-bg"></i>
+          </div>
+        </div>
       </div>
-      <span class="badge text-bg-warning">
-        <i class="bi bi-exclamation-triangle me-1"></i>
-        <span id="totalPorVencer">0</span> por vencer en &lt; 4 días
-      </span>
+
+      <div class="col-md-6">
+        <div class="card stat-card bg-grad-success h-100">
+          <div class="card-body">
+            <div class="card-title">Donaciones hasta la fecha (mes)</div>
+            <div class="value" id="contadorDonaciones">0</div>
+            <div class="hint"><i class="bi bi-box2-heart"></i> Alimentos ingresados este mes</div>
+            <i class="bi bi-box2-heart-fill icon-bg"></i>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- ============ DETALLE SEMANAL DE PERECIBLES ============ -->
+    <div class="panel mt-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <div>
+          <h5 class="mb-0">Detalle de alimentos perecibles</h5>
+          <small class="text-muted">
+            Disponibles hasta la última semana ingresada ·
+            <span id="etiquetaSemana">Semana 4 · 22 – 28 sep</span>
+          </small>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <label for="selectSemana" class="form-label mb-0 small text-muted text-nowrap">Semana:</label>
+          <select id="selectSemana" class="form-select form-select-sm" style="width: auto;">
+            <option value="1">Semana 1 · 01 – 07 sep</option>
+            <option value="2">Semana 2 · 08 – 14 sep</option>
+            <option value="3">Semana 3 · 15 – 21 sep</option>
+            <option value="4" selected>Semana 4 · 22 – 28 sep (última)</option>
+          </select>
+          <span class="badge text-bg-light text-nowrap">Actualizado hoy</span>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th style="width: 35%;">Distribución</th>
+              <th class="text-center">Vence en</th>
+              <th class="text-end">Cantidad disponible</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPerecibles"></tbody>
+        </table>
+      </div>
+
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 pt-3 border-top">
+        <div class="d-flex flex-wrap gap-2">
+          <span class="badge text-bg-light"><i class="bi bi-box-seam me-1"></i><span id="totalProductos">0</span> productos</span>
+          <span class="badge text-bg-light"><i class="bi bi-basket me-1"></i><span id="totalPeso">0</span> kg</span>
+          <span class="badge text-bg-light"><i class="bi bi-123 me-1"></i><span id="totalUnidades">0</span> unidades / litros</span>
+        </div>
+        <span class="badge text-bg-warning">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          <span id="totalPorVencer">0</span> por vencer en &lt; 4 días
+        </span>
+      </div>
+    </div>
+
   </div>
 
-</div>
+  <!-- ============================================================
+       MODAL · se renderiza server-side ANTES de cargar los scripts
+       ============================================================ -->
+  {% include 'modals/modal_persona.html' %}
 
-<!-- ============================================================
-     MODAL · se renderiza server-side ANTES de cargar los scripts
-     ============================================================ -->
-{% include 'modals/modal_persona.html' %}
+  <!-- ============================================================
+       SCRIPTS · siempre al final, después del modal
+       ============================================================ -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', path='js/modal_persona.js') }}"></script>
 
-<!-- ============================================================
-     SCRIPTS · siempre al final, después del modal
-     ============================================================ -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ url_for('static', path='./static/js/modal_persona.js') }}"></script>
+  <!-- Lógica del panel (perecibles y métricas del backend) -->
+  <script>
+    const semanas = {
+      1: { etiqueta: 'Semana 1 · 01 – 07 sep', productos: [
+          { nombre:'Huevos',          icono:'bi-egg-fried', color:'warning', unidad:'unidades', tipo:'unidad', cantidad:380, vence:1 },
+          { nombre:'Tomates',         icono:'bi-basket',    color:'danger',  unidad:'kg',       tipo:'peso',   cantidad: 85, vence:2 },
+          { nombre:'Leche',           icono:'bi-cup-straw', color:'success', unidad:'litros',   tipo:'unidad', cantidad:140, vence:3 },
+          { nombre:'Pan',             icono:'bi-basket2',   color:'primary', unidad:'unidades', tipo:'unidad', cantidad: 70, vence:1 },
+          { nombre:'Verduras mixtas', icono:'bi-flower1',   color:'info',    unidad:'kg',       tipo:'peso',   cantidad: 40, vence:2 }
+      ]},
+      2: { etiqueta: 'Semana 2 · 08 – 14 sep', productos: [
+          { nombre:'Huevos',          icono:'bi-egg-fried', color:'warning', unidad:'unidades', tipo:'unidad', cantidad:430, vence:2 },
+          { nombre:'Tomates',         icono:'bi-basket',    color:'danger',  unidad:'kg',       tipo:'peso',   cantidad: 98, vence:3 },
+          { nombre:'Leche',           icono:'bi-cup-straw', color:'success', unidad:'litros',   tipo:'unidad', cantidad:165, vence:4 },
+          { nombre:'Pan',             icono:'bi-basket2',   color:'primary', unidad:'unidades', tipo:'unidad', cantidad: 82, vence:2 },
+          { nombre:'Verduras mixtas', icono:'bi-flower1',   color:'info',    unidad:'kg',       tipo:'peso',   cantidad: 51, vence:3 }
+      ]},
+      3: { etiqueta: 'Semana 3 · 15 – 21 sep', productos: [
+          { nombre:'Huevos',          icono:'bi-egg-fried', color:'warning', unidad:'unidades', tipo:'unidad', cantidad:490, vence:4 },
+          { nombre:'Tomates',         icono:'bi-basket',    color:'danger',  unidad:'kg',       tipo:'peso',   cantidad:110, vence:2 },
+          { nombre:'Leche',           icono:'bi-cup-straw', color:'success', unidad:'litros',   tipo:'unidad', cantidad:190, vence:5 },
+          { nombre:'Pan',             icono:'bi-basket2',   color:'primary', unidad:'unidades', tipo:'unidad', cantidad: 90, vence:3 },
+          { nombre:'Verduras mixtas', icono:'bi-flower1',   color:'info',    unidad:'kg',       tipo:'peso',   cantidad: 58, vence:4 }
+      ]},
+      4: { etiqueta: 'Semana 4 · 22 – 28 sep', productos: [
+          { nombre:'Huevos',          icono:'bi-egg-fried', color:'warning', unidad:'unidades', tipo:'unidad', cantidad:540, vence:5 },
+          { nombre:'Tomates',         icono:'bi-basket',    color:'danger',  unidad:'kg',       tipo:'peso',   cantidad:120, vence:3 },
+          { nombre:'Leche',           icono:'bi-cup-straw', color:'success', unidad:'litros',   tipo:'unidad', cantidad:210, vence:6 },
+          { nombre:'Pan',             icono:'bi-basket2',   color:'primary', unidad:'unidades', tipo:'unidad', cantidad: 95, vence:2 },
+          { nombre:'Verduras mixtas', icono:'bi-flower1',   color:'info',    unidad:'kg',       tipo:'peso',   cantidad: 63, vence:4 }
+      ]}
+    };
 
-<!-- Lógica del panel (perecibles) -->
-<script>
-const semanas = {
-  1: { etiqueta: 'Semana 1 · 01 – 07 sep', productos: [
-      { nombre:'Huevos',          icono:'bi-egg-fried', color:'warning', unidad:'unidades', tipo:'unidad', cantidad:380, vence:1 },
-      { nombre:'Tomates',         icono:'bi-basket',    color:'danger',  unidad:'kg',       tipo:'peso',   cantidad: 85, vence:2 },
-      { nombre:'Leche',           icono:'bi-cup-straw', color:'success', unidad:'litros',   tipo:'unidad', cantidad:140, vence:3 },
-      { nombre:'Pan',             icono:'bi-basket2',   color:'primary', unidad:'unidades', tipo:'unidad', cantidad: 70, vence:1 },
-      { nombre:'Verduras mixtas', icono:'bi-flower1',   color:'info',    unidad:'kg',       tipo:'peso',   cantidad: 40, vence:2 }
-  ]},
-  2: { etiqueta: 'Semana 2 · 08 – 14 sep', productos: [
-      { nombre:'Huevos',          icono:'bi-egg-fried', color:'warning', unidad:'unidades', tipo:'unidad', cantidad:430, vence:2 },
-      { nombre:'Tomates',         icono:'bi-basket',    color:'danger',  unidad:'kg',       tipo:'peso',   cantidad: 98, vence:3 },
-      { nombre:'Leche',           icono:'bi-cup-straw', color:'success', unidad:'litros',   tipo:'unidad', cantidad:165, vence:4 },
-      { nombre:'Pan',             icono:'bi-basket2',   color:'primary', unidad:'unidades', tipo:'unidad', cantidad: 82, vence:2 },
-      { nombre:'Verduras mixtas', icono:'bi-flower1',   color:'info',    unidad:'kg',       tipo:'peso',   cantidad: 51, vence:3 }
-  ]},
-  3: { etiqueta: 'Semana 3 · 15 – 21 sep', productos: [
-      { nombre:'Huevos',          icono:'bi-egg-fried', color:'warning', unidad:'unidades', tipo:'unidad', cantidad:490, vence:4 },
-      { nombre:'Tomates',         icono:'bi-basket',    color:'danger',  unidad:'kg',       tipo:'peso',   cantidad:110, vence:2 },
-      { nombre:'Leche',           icono:'bi-cup-straw', color:'success', unidad:'litros',   tipo:'unidad', cantidad:190, vence:5 },
-      { nombre:'Pan',             icono:'bi-basket2',   color:'primary', unidad:'unidades', tipo:'unidad', cantidad: 90, vence:3 },
-      { nombre:'Verduras mixtas', icono:'bi-flower1',   color:'info',    unidad:'kg',       tipo:'peso',   cantidad: 58, vence:4 }
-  ]},
-  4: { etiqueta: 'Semana 4 · 22 – 28 sep', productos: [
-      { nombre:'Huevos',          icono:'bi-egg-fried', color:'warning', unidad:'unidades', tipo:'unidad', cantidad:540, vence:5 },
-      { nombre:'Tomates',         icono:'bi-basket',    color:'danger',  unidad:'kg',       tipo:'peso',   cantidad:120, vence:3 },
-      { nombre:'Leche',           icono:'bi-cup-straw', color:'success', unidad:'litros',   tipo:'unidad', cantidad:210, vence:6 },
-      { nombre:'Pan',             icono:'bi-basket2',   color:'primary', unidad:'unidades', tipo:'unidad', cantidad: 95, vence:2 },
-      { nombre:'Verduras mixtas', icono:'bi-flower1',   color:'info',    unidad:'kg',       tipo:'peso',   cantidad: 63, vence:4 }
-  ]}
-};
+    const ULTIMA_SEMANA = 4;
+    const fmt = (n) => Number(n || 0).toLocaleString('es-ES');
+    const claseVenc = (d) => d <= 3 ? 'text-bg-danger' : d <= 5 ? 'text-bg-warning' : 'text-bg-success';
 
-const ULTIMA_SEMANA = 4;
-const fmt = (n) => n.toLocaleString('es-ES');
-const claseVenc = (d) => d <= 3 ? 'text-bg-danger' : d <= 5 ? 'text-bg-warning' : 'text-bg-success';
+    function renderSemana(numero) {
+      const semana = semanas[numero];
+      if (!semana) return;
 
-function renderSemana(numero) {
-  const semana = semanas[numero];
-  if (!semana) return;
+      const tbody = document.getElementById('tbodyPerecibles');
+      const maxCant = Math.max(...semana.productos.map(p => p.cantidad), 1);
 
-  const tbody = document.getElementById('tbodyPerecibles');
-  const maxCant = Math.max(...semana.productos.map(p => p.cantidad));
+      tbody.innerHTML = semana.productos.map(p => {
+        const pct = Math.round((p.cantidad / maxCant) * 100);
+        return `
+          <tr>
+            <td><i class="bi ${p.icono} text-${p.color} me-2"></i>${p.nombre}
+                <small class="text-muted">(${p.unidad})</small></td>
+            <td>
+              <div class="progress" role="progressbar" aria-valuenow="${pct}"
+                   aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar bg-${p.color}" style="width:${pct}%"></div>
+              </div>
+            </td>
+            <td class="text-center">
+              <span class="badge ${claseVenc(p.vence)}">${p.vence} día${p.vence === 1 ? '' : 's'}</span>
+            </td>
+            <td class="text-end fw-semibold">${fmt(p.cantidad)}</td>
+          </tr>`;
+      }).join('');
 
-  tbody.innerHTML = semana.productos.map(p => {
-    const pct = Math.round((p.cantidad / maxCant) * 100);
-    return `
-      <tr>
-        <td><i class="bi ${p.icono} text-${p.color} me-2"></i>${p.nombre}
-            <small class="text-muted">(${p.unidad})</small></td>
-        <td>
-          <div class="progress" role="progressbar" aria-valuenow="${pct}"
-               aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-bar bg-${p.color}" style="width:${pct}%"></div>
-          </div>
-        </td>
-        <td class="text-center">
-          <span class="badge ${claseVenc(p.vence)}">${p.vence} día${p.vence === 1 ? '' : 's'}</span>
-        </td>
-        <td class="text-end fw-semibold">${fmt(p.cantidad)}</td>
-      </tr>`;
-  }).join('');
+      const peso      = semana.productos.filter(p => p.tipo === 'peso').reduce((a, p) => a + p.cantidad, 0);
+      const unidades  = semana.productos.filter(p => p.tipo === 'unidad').reduce((a, p) => a + p.cantidad, 0);
+      const porVencer = semana.productos.filter(p => p.vence < 4).length;
 
-  const peso      = semana.productos.filter(p => p.tipo === 'peso').reduce((a, p) => a + p.cantidad, 0);
-  const unidades  = semana.productos.filter(p => p.tipo === 'unidad').reduce((a, p) => a + p.cantidad, 0);
-  const porVencer = semana.productos.filter(p => p.vence < 4).length;
+      document.getElementById('totalProductos').textContent = semana.productos.length;
+      document.getElementById('totalPeso').textContent      = fmt(peso);
+      document.getElementById('totalUnidades').textContent  = fmt(unidades);
+      document.getElementById('totalPorVencer').textContent = porVencer;
+      document.getElementById('etiquetaSemana').textContent = semana.etiqueta;
+    }
 
-  document.getElementById('totalProductos').textContent = semana.productos.length;
-  document.getElementById('totalPeso').textContent      = fmt(peso);
-  document.getElementById('totalUnidades').textContent  = fmt(unidades);
-  document.getElementById('totalPorVencer').textContent = porVencer;
-  document.getElementById('etiquetaSemana').textContent = semana.etiqueta;
-}
+    async function cargarMetricasBackend() {
+      try {
+        const res = await fetch('/api/metricas/dashboard', { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
 
-document.addEventListener('DOMContentLoaded', () => {
-  const sel = document.getElementById('selectSemana');
-  sel.value = ULTIMA_SEMANA;
-  renderSemana(ULTIMA_SEMANA);
-  sel.addEventListener('change', e => renderSemana(e.target.value));
-});
-</script>
+        const elPersonas = document.getElementById('contadorPersonas');
+        if (elPersonas) elPersonas.textContent = fmt(data.total_personas_registradas);
+
+        const elDonaciones = document.getElementById('contadorDonaciones');
+        if (elDonaciones) elDonaciones.textContent = fmt(data.total_alimentos_ingresados_mes);
+      } catch (err) {
+        console.error('Error cargando métricas del dashboard:', err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const sel = document.getElementById('selectSemana');
+      sel.value = ULTIMA_SEMANA;
+      renderSemana(ULTIMA_SEMANA);
+      sel.addEventListener('change', e => renderSemana(e.target.value));
+
+      // Cargar métricas reales desde FastAPI
+      cargarMetricasBackend();
+
+      // Permitir refrescar con el botón "Actualizar"
+      const btnActualizar = document.getElementById('btnActualizarDashboard');
+      if (btnActualizar) {
+        btnActualizar.addEventListener('click', cargarMetricasBackend);
+      }
+    });
+  </script>
 </body>
 </html>
