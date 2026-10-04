@@ -1,11 +1,20 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-0">
-  <div class="container-fluid px-2">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <!-- 1. Logo / Marca (Izquierda) -->
+    <a class="navbar-brand" href="{{ url_for('home') }}">Proyecto Donaciones</a>
+    
+    <!-- 2. Botón para móviles -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <!-- 3. Menú de navegación (Derecha) -->
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <!-- "ms-auto" empuja los links hacia la derecha -->
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
         <li class="nav-item">
           <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Home</a>
         </li>
-       </li>
         <li class="nav-item">
           <a class="nav-link {% if active_page == 'donaciones_semanales' %}active{% endif %}" href="{{ url_for('donaciones_semanales') }}">Donaciones Semanales</a>
         </li>
@@ -17,9 +26,5 @@
         </li>
       </ul>
     </div>
-    <a class="navbar-brand ms-auto me-0" href="{{ url_for('home') }}">Proyecto Donaciones</a>
-    <button class="navbar-toggler ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
   </div>
 </nav>

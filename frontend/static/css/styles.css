@@ -8,12 +8,11 @@ body {
     background: #f4f4f4;
 }
 
-.container {
+.contenedor-personalizado {
     width: 90%;
     max-width: 800px;
     margin: 80px auto;
     padding: 40px;
-
     background: white;
     border-radius: 12px;
     text-align: center;
