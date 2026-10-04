@@ -106,7 +106,7 @@
                 <li class="donation-item">
                   <span class="food">${escapeHtml(d.tipo_alimento)}</span>
                   <span class="meta">
-                    <span>Vence: ${d.fecha_vencimiento}</span>
+                    <span>Ingreso: ${d.fecha_ingreso}</span>
                     <span class="qty">${d.cantidad}</span>
                     <button class="delete-btn" data-del="${idx}-${didx}" title="Eliminar">✕</button>
                   </span>
@@ -139,7 +139,7 @@
           id: uid(),
           tipo_alimento: tipo,
           cantidad: cant,
-          fecha_vencimiento: fecha
+          fecha_ingreso: fecha
         });
 
         render();
