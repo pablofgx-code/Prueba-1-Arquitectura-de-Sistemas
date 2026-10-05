@@ -24,29 +24,28 @@
             <div class="col-md-6">
               <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
               <input type="text" class="form-control" id="nombre" name="nombre"
-                     placeholder="Ej: María" required maxlength="80">
+                  placeholder="Ej: María" required maxlength="50">
               <div class="invalid-feedback">Ingresa el nombre.</div>
             </div>
 
             <div class="col-md-6">
               <label for="apellido" class="form-label">Apellido <span class="text-danger">*</span></label>
               <input type="text" class="form-control" id="apellido" name="apellido"
-                     placeholder="Ej: González" required maxlength="80">
+                   placeholder="Ej: González" required maxlength="50">
               <div class="invalid-feedback">Ingresa el apellido.</div>
             </div>
 
             <div class="col-md-6">
               <label for="rut" class="form-label">RUT <span class="text-danger">*</span></label>
               <input type="text" class="form-control" id="rut" name="rut"
-                     placeholder="Ej: 12.345.678-9" required
-                     pattern="^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$">
-              <div class="invalid-feedback">Formato esperado: 12.345.678-9</div>
+                     placeholder="Ej: 12.345.678-9" required autocomplete="off">
+              <div class="invalid-feedback">RUT inválido. Ejemplo: 12.345.678-9</div>
             </div>
 
             <div class="col-md-6">
               <label for="contacto" class="form-label">Contacto</label>
               <input type="text" class="form-control" id="contacto" name="contacto"
-                     placeholder="Teléfono o correo (opcional)" maxlength="120">
+             placeholder="Teléfono o correo (opcional)" maxlength="20">
               <div class="form-text">Opcional.</div>
             </div>
 
@@ -93,16 +92,9 @@
                         placeholder="Describe brevemente el motivo..."></textarea>
             </div>
 
-            <div class="col-12">
-              <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" role="switch"
-                       id="activo" name="activo" checked>
-                <label class="form-check-label" for="activo">Perfil activo</label>
-              </div>
-            </div>
 
           </div>
-
+          <div id="errorPersona" class="alert alert-danger d-none mt-3 mb-0" role="alert"></div>
           <div class="alert alert-light border mt-4 mb-0 small text-muted">
             <i class="bi bi-info-circle me-1"></i>
             El historial de retiros se gestionará desde el perfil una vez creado.

@@ -1,161 +1,126 @@
-/* =========================================================
-   Lógica del modal "Añadir Persona"
-   - Cálculo automático de edad
-   - Toggle del campo motivo_situacion
-   - Construcción del payload según el Documento Perfil
-   - Inicialización segura (sin getOrCreateInstance)
-   ========================================================= */
-(function () {
-  'use strict';
+import { perfilesService } from "/services/perfilesService.js";
+import { formatearRut, validarRut } from "/services/rut.js";
 
-  let totalPersonas = 1248;
-  let inicializado = false;
+function calcularEdad(fechaISO) {
+  if (!fechaISO) return "";
+  const hoy = new Date();
+  const nac = new Date(fechaISO);
+  let edad = hoy.getFullYear() - nac.getFullYear();
+  const m = hoy.getMonth() - nac.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+  return edad >= 0 ? edad : "";
+}
 
-  const fmt = (n) => n.toLocaleString('es-ES');
+function init() {
+  const form = document.getElementById("formPersona");
+  const modalEl = document.getElementById("modalPersona");
+  if (!form || !modalEl) return;
 
-  function actualizarContadorPersonas() {
-    const el = document.getElementById('contadorPersonas');
-    if (el) el.textContent = fmt(totalPersonas);
-  }
+  const previa = bootstrap.Modal.getInstance(modalEl);
+  if (previa) previa.dispose();
+  const modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true, focus: true });
 
-  function calcularEdad(fechaISO) {
-    if (!fechaISO) return '';
-    const hoy = new Date();
-    const nac = new Date(fechaISO);
-    let edad = hoy.getFullYear() - nac.getFullYear();
-    const m = hoy.getMonth() - nac.getMonth();
-    if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
-    return edad >= 0 ? edad : '';
-  }
+  const btnAbrir = document.getElementById("btnAbrirPersona");
+  const inputRut = document.getElementById("rut");
+  const inputFecha = document.getElementById("fecha_nacimiento");
+  const inputEdad = document.getElementById("edad");
+  const switchCalle = document.getElementById("situacion_calle");
+  const wrapperMot = document.getElementById("wrapperMotivo");
+  const inputMotivo = document.getElementById("motivo_situacion");
+  const alerta = document.getElementById("alertaPersona");
+  const alertaTxt = document.getElementById("alertaPersonaTexto");
+  const errorEl = document.getElementById("errorPersona");
+  const btnGuardar = form.querySelector('[type="submit"]');
 
-  function init() {
-    if (inicializado) return;
+  const mostrarError = (txt) => {
+    errorEl.textContent = txt;
+    errorEl.classList.toggle("d-none", !txt);
+  };
 
-    const form    = document.getElementById('formPersona');
-    const modalEl = document.getElementById('modalPersona');
+  inputFecha.valueAsDate = new Date();
+  inputEdad.value = calcularEdad(inputFecha.value);
+  inputFecha.addEventListener("change", () => {
+    inputEdad.value = calcularEdad(inputFecha.value);
+  });
 
-    if (!form || !modalEl) {
-      console.warn('[modal_persona] No se encontró #formPersona / #modalPersona.');
+  // RUT: se formatea al salir del campo y se valida el dígito verificador
+  const validarCampoRut = () => {
+    inputRut.setCustomValidity(validarRut(inputRut.value) ? "" : "RUT inválido");
+  };
+  inputRut.addEventListener("blur", () => {
+    if (inputRut.value.trim()) inputRut.value = formatearRut(inputRut.value);
+    validarCampoRut();
+  });
+  inputRut.addEventListener("input", validarCampoRut);
+
+  switchCalle.addEventListener("change", () => {
+    if (switchCalle.checked) {
+      wrapperMot.classList.remove("d-none");
+    } else {
+      wrapperMot.classList.add("d-none");
+      inputMotivo.value = "";
+    }
+  });
+
+  btnAbrir?.addEventListener("click", () => modal.show());
+
+  modalEl.addEventListener("show.bs.modal", () => {
+    form.classList.remove("was-validated");
+    mostrarError("");
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    inputRut.value = formatearRut(inputRut.value);
+    validarCampoRut();
+
+    if (!form.checkValidity()) {
+      form.classList.add("was-validated");
       return;
     }
 
-    inicializado = true;
+    const motivo = switchCalle.checked && inputMotivo.value.trim() ? inputMotivo.value.trim() : null;
 
-    /* Limpia cualquier instancia previa corrupta y crea una nueva con config explícita */
-    const previa = bootstrap.Modal.getInstance(modalEl);
-    if (previa) previa.dispose();
+    const payload = {
+      nombre: document.getElementById("nombre").value.trim(),
+      apellido: document.getElementById("apellido").value.trim(),
+      rut: inputRut.value,
+      contacto: document.getElementById("contacto").value.trim() || null,
+      fecha_nacimiento: inputFecha.value,
+      edad: parseInt(inputEdad.value, 10) || 0,
+      situacion_calle: switchCalle.checked,
+      motivo_situacion: motivo,
+    };
 
-    const modal = new bootstrap.Modal(modalEl, {
-      backdrop: true,
-      keyboard: true,
-      focus:    true
-    });
+    btnGuardar.disabled = true;
+    mostrarError("");
 
-    const btnAbrir    = document.getElementById('btnAbrirPersona');
-    const inputFecha  = document.getElementById('fecha_nacimiento');
-    const inputEdad   = document.getElementById('edad');
-    const switchCalle = document.getElementById('situacion_calle');
-    const wrapperMot  = document.getElementById('wrapperMotivo');
-    const inputMotivo = document.getElementById('motivo_situacion');
-    const alerta      = document.getElementById('alertaPersona');
-    const alertaTxt   = document.getElementById('alertaPersonaTexto');
+    try {
+      await perfilesService.registrar(payload);
 
-    /* Fecha por defecto = hoy */
-    inputFecha.valueAsDate = new Date();
-    inputEdad.value = calcularEdad(inputFecha.value);
+      if (alerta && alertaTxt) {
+        alertaTxt.textContent = `Persona "${payload.nombre} ${payload.apellido}" añadida correctamente.`;
+        alerta.classList.remove("d-none");
+        alerta.classList.add("show");
+      }
 
-    /* Cálculo automático de edad */
-    inputFecha.addEventListener('change', () => {
+      form.reset();
+      form.classList.remove("was-validated");
+      inputFecha.valueAsDate = new Date();
       inputEdad.value = calcularEdad(inputFecha.value);
-    });
+      wrapperMot.classList.add("d-none");
+      modal.hide();
 
-    /* Toggle del motivo según situación de calle */
-    switchCalle.addEventListener('change', () => {
-      if (switchCalle.checked) {
-        wrapperMot.classList.remove('d-none');
-      } else {
-        wrapperMot.classList.add('d-none');
-        inputMotivo.value = '';
-      }
-    });
-
-    /* Abrir modal desde el botón (sin data-bs-toggle) */
-    if (btnAbrir) {
-      btnAbrir.addEventListener('click', () => modal.show());
+      // Avisa a la página para que refresque sus contadores
+      document.dispatchEvent(new CustomEvent("persona-creada"));
+    } catch (err) {
+      mostrarError(err.message || "No se pudo guardar la persona");
+    } finally {
+      btnGuardar.disabled = false;
     }
+  });
+}
 
-    /* Reset de validación al abrir */
-    modalEl.addEventListener('show.bs.modal', () => {
-      form.classList.remove('was-validated');
-    });
-
-    /* Envío */
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (!form.checkValidity()) {
-        form.classList.add('was-validated');
-        return;
-      }
-
-      const situacionCalle = switchCalle.checked;
-      const motivo = situacionCalle && inputMotivo.value.trim()
-        ? inputMotivo.value.trim()
-        : null;
-
-      const payload = {
-        nombre:            document.getElementById('nombre').value.trim(),
-        apellido:          document.getElementById('apellido').value.trim(),
-        rut:               document.getElementById('rut').value.trim(),
-        contacto:          document.getElementById('contacto').value.trim() || null,
-        fecha_nacimiento:  inputFecha.value,
-        edad:              parseInt(inputEdad.value, 10) || 0,
-        situacion_calle:   situacionCalle,
-        motivo_situacion:  motivo
-      };
-
-      try {
-        const res = await fetch('/api/perfiles/registrar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          alert(data.detail || 'Error al registrar la persona');
-          return;
-        }
-
-        totalPersonas += 1;
-        actualizarContadorPersonas();
-
-        if (alerta && alertaTxt) {
-          alertaTxt.textContent =
-            `Persona "${payload.nombre} ${payload.apellido}" añadida correctamente.`;
-          alerta.classList.remove('d-none');
-          alerta.classList.add('show');
-        }
-
-        form.reset();
-        form.classList.remove('was-validated');
-        inputFecha.valueAsDate = new Date();
-        inputEdad.value = calcularEdad(inputFecha.value);
-        wrapperMot.classList.add('d-none');
-        modal.hide();
-      } catch (err) {
-        console.error('Error al guardar perfil:', err);
-      }
-    });
-
-    actualizarContadorPersonas();
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
+init();
