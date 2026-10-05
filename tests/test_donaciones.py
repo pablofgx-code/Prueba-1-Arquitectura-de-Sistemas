@@ -6,7 +6,6 @@ import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, patch
 from fastapi import HTTPException
-from datetime import date
 
 from main import app
 from backend.auth.dependencies import obtener_admin_actual
@@ -43,7 +42,7 @@ async def test_servicio_metodos_principales():
     repo.buscar_por_mes.return_value = mes_falso
     service = DonacionService(repo)
     
-    datos_donacion = AgregarDonaciones(numero_semana=1, tipo_alimento="Arroz", cantidad=10, fecha_vencimiento=date(2027,1,1))
+    datos_donacion = AgregarDonaciones(numero_semana=1, tipo_alimento="Arroz", cantidad=10)
     await service.registra_donacion(2026, 10, datos_donacion)
     assert repo.guardar.called
     
@@ -97,7 +96,6 @@ async def test_orquestador_eliminar_especifica_exito():
     donacion_falsa.id = "id-123"
     donacion_falsa.tipo_alimento = "Fideos"
     donacion_falsa.cantidad = 10
-    donacion_falsa.fecha_vencimiento = date(2027, 1, 1)
     
     semana_falsa.donaciones = [donacion_falsa]
     mes_falso.semanas = [semana_falsa]
@@ -128,7 +126,7 @@ def test_routers_donaciones():
     mock_orq_del.vaciar_semana.return_value = {"mensaje": "OK"}
     app.dependency_overrides[get_eliminar_donacion_orquestador] = lambda: mock_orq_del
     
-    assert client.put("/api/donaciones/2026/10", json={"numero_semana": 1, "tipo_alimento": "Arroz", "cantidad": 5, "fecha_vencimiento": "2027-01-01"}).status_code == 200
+    assert client.put("/api/donaciones/2026/10", json={"numero_semana": 1, "tipo_alimento": "Arroz", "cantidad": 5}).status_code == 200
     assert client.get("/api/donaciones/2026/10/totales").status_code == 200
     assert client.post("/api/donaciones/2026/10/semanas").status_code == 200
     assert client.delete("/api/donaciones/2026/10/semana/1").status_code == 200

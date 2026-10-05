@@ -1,5 +1,3 @@
-
-
 import logging
 from datetime import date, datetime
 
@@ -8,13 +6,10 @@ from backend.perfiles.models import Perfil
 from backend.donaciones.models import MesDonacion
 from backend.inventario.models import (
     LotePerecible,
-    RegistroSalida,
-    ItemLlevado,
+    RegistroSalida
 )
 
-
 logger = logging.getLogger("uvicorn")
-
 
 async def poblar_base_de_datos():
     """Inserta datos de prueba si la base de datos está vacía."""
@@ -22,7 +17,6 @@ async def poblar_base_de_datos():
     # ============================================================
     # 1. Seed de Administradores
     # ============================================================
-
     if await Administrador.count() == 0:
         admin = Administrador(
             nombre="Admin Iglesia",
@@ -32,18 +26,12 @@ async def poblar_base_de_datos():
             ),
             activo=True,
         )
-
         await admin.insert()
-
-        logger.info(
-            "🟢 Seed: Administrador inicial creado "
-            "(admin@iglesia.org)."
-        )
+        logger.info("🟢 Seed: Administrador inicial creado (admin@iglesia.org).")
 
     # ============================================================
     # 2. Seed de Perfiles
     # ============================================================
-
     if await Perfil.count() == 0:
         perfiles = [
             Perfil(
@@ -83,15 +71,15 @@ async def poblar_base_de_datos():
                 {
                     "numero_semana": 1,
                     "donaciones": [
-                        {"id": "don-001", "tipo_alimento": "Arroz", "cantidad": 25, "fecha_vencimiento": date(2027, 6, 30)},
-                        {"id": "don-002", "tipo_alimento": "Fideos", "cantidad": 40, "fecha_vencimiento": date(2027, 8, 15)},
+                        {"id": "don-001", "tipo_alimento": "Arroz", "cantidad": 25},
+                        {"id": "don-002", "tipo_alimento": "Fideos", "cantidad": 40},
                     ],
                 },
                 {
                     "numero_semana": 2,
                     "donaciones": [
-                        {"id": "don-003", "tipo_alimento": "Leche Entera", "cantidad": 15, "fecha_vencimiento": date(2026, 12, 1)},
-                        {"id": "don-004", "tipo_alimento": "Aceite", "cantidad": 10, "fecha_vencimiento": date(2028, 1, 1)},
+                        {"id": "don-003", "tipo_alimento": "Leche Entera", "cantidad": 15},
+                        {"id": "don-004", "tipo_alimento": "Aceite", "cantidad": 10},
                     ],
                 },
             ],
@@ -104,9 +92,9 @@ async def poblar_base_de_datos():
     # ============================================================
     if await LotePerecible.count() == 0:
         lotes = [
-            LotePerecible(tipo_alimento="Arroz", cantidad_disponible=25, fecha_vencimiento=date(2027, 6, 30)),
-            LotePerecible(tipo_alimento="Leche Entera", cantidad_disponible=15, fecha_vencimiento=date(2026, 12, 1)),
-            LotePerecible(tipo_alimento="Aceite", cantidad_disponible=10, fecha_vencimiento=date(2028, 1, 1)),
+            LotePerecible(tipo_alimento="Arroz", cantidad_disponible=25),
+            LotePerecible(tipo_alimento="Leche Entera", cantidad_disponible=15),
+            LotePerecible(tipo_alimento="Aceite", cantidad_disponible=10),
         ]
         await LotePerecible.insert_many(lotes)
         logger.info("🟢 Seed: Lotes de inventario creados.")
@@ -118,13 +106,11 @@ async def poblar_base_de_datos():
         salidas = [
             RegistroSalida(
                 fecha=datetime.now(),
-                rut_beneficiario="12.345.678-9",
-                alimentos_entregados=[ItemLlevado(tipo_alimento="Fideos", cantidad=10)],
+                rut_beneficiario="12.345.678-9"
             ),
             RegistroSalida(
                 fecha=datetime.now(),
-                rut_beneficiario="20.111.222-3",
-                alimentos_entregados=[ItemLlevado(tipo_alimento="Arroz", cantidad=5)],
+                rut_beneficiario="20.111.222-3"
             ),
         ]
         await RegistroSalida.insert_many(salidas)

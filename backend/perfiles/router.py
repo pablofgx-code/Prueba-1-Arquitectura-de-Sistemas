@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from typing import List
 from fastapi.responses import StreamingResponse
-from backend.perfiles.schemas import PerfilCreate, PerfilResponse, SolicitudRetiro
+from backend.perfiles.schemas import PerfilCreate, PerfilResponse
 from backend.perfiles.service import PerfilService
 from backend.auth.dependencies import obtener_admin_actual
 from backend.perfiles.repository import PerfilRepository
@@ -44,10 +44,9 @@ async def listar_perfiles(
 @router.post("/{rut}/retiros")
 async def registrar_retiro_manual(
     rut: str,
-    datos: SolicitudRetiro,
     orquestador: RegistrarRetiroOrquestador = Depends(get_registrar_retiro_orquestador)
 ):
-    return await orquestador.ejecutar(rut, datos)
+    return await orquestador.ejecutar(rut)
 
 @router.get("/reporte/excel", response_class=StreamingResponse)
 async def descargar_reporte_excel(

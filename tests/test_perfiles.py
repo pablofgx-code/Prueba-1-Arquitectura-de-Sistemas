@@ -13,7 +13,7 @@ from main import app
 from backend.auth.dependencies import obtener_admin_actual
 from backend.perfiles.router import get_perfil_service, get_registrar_retiro_orquestador
 from backend.perfiles.service import PerfilService
-from backend.perfiles.schemas import PerfilCreate, SolicitudRetiro, ItemRetiro
+from backend.perfiles.schemas import PerfilCreate
 from backend.perfiles.repository import PerfilRepository
 from backend.perfiles.orquestador import RegistrarRetiroOrquestador
 
@@ -66,14 +66,15 @@ async def test_orquestador_retiro_exitoso():
     perfil_falso = AsyncMock()
     perfil_falso.activo = True
     perfil_falso.historial_retiros = []
+    perfil_falso.nombre = "Persona Prueba"
     mock_perfil_service.repo.buscar_por_rut.return_value = perfil_falso
     
     orquestador = RegistrarRetiroOrquestador(mock_perfil_service, mock_inventario_service)
-    datos = SolicitudRetiro(alimentos=[ItemRetiro(tipo_alimento="Arroz", cantidad=2)])
     
-    res = await orquestador.ejecutar("11111111-1", datos)
+    res = await orquestador.ejecutar("11111111-1")
     assert "exitosamente" in res["mensaje"]
-    assert mock_inventario_service.registrar_salida.called
+    assert mock_inventario_service.registro_ticket_transaccion.called
+    assert mock_perfil_service.repo.guardar.called
 
 @pytest.mark.asyncio
 @patch("backend.perfiles.service.Perfil")
@@ -168,7 +169,7 @@ def test_router_registrar_retiro():
     mock_orq.ejecutar.return_value = {"mensaje": "Retiro registrado exitosamente"}
     app.dependency_overrides[get_registrar_retiro_orquestador] = lambda: mock_orq
     
-    response = client.post("/api/perfiles/11111111-1/retiros", json={"alimentos": [{"tipo_alimento": "Arroz", "cantidad": 2}]})
+    response = client.post("/api/perfiles/11111111-1/retiros")
     assert response.status_code == 200
 
 def test_router_resumen_y_excel():
@@ -194,7 +195,7 @@ async def test_orquestador_perfil_no_existe_o_inactivo():
     
     orq = RegistrarRetiroOrquestador(mock_perfil_service, mock_inventario_service)
     with pytest.raises(HTTPException) as exc:
-        await orq.ejecutar("11", SolicitudRetiro(alimentos=[]))
+        await orq.ejecutar("11")
     assert exc.value.status_code == 404
 
 @pytest.mark.asyncio
@@ -208,7 +209,7 @@ async def test_orquestador_retiro_duplicado():
     
     orq = RegistrarRetiroOrquestador(mock_perfil_service, mock_inventario_service)
     with pytest.raises(HTTPException) as exc:
-        await orq.ejecutar("11", SolicitudRetiro(alimentos=[]))
+        await orq.ejecutar("11")
     assert exc.value.status_code == 400
 
 @pytest.mark.asyncio

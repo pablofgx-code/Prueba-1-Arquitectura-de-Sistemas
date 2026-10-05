@@ -4,7 +4,7 @@ from backend.donaciones.schemas import InicializarMes, AgregarDonaciones, Resume
 from backend.donaciones.models import MesDonacion
 from backend.donaciones.service import DonacionService
 from backend.donaciones.repository import DonacionRepository
-from backend.donaciones.orquestador import RegistrarDonacionOrquestador, EliminarDonacionOrquestador
+from backend.donaciones.orquestador import RegistrarDonacionOrquestador, EliminarDonacionOrquestador, InicializarMesOrquestador
 from backend.inventario.repository import InventarioRepository
 from backend.inventario.service import InventarioService
 
@@ -19,6 +19,13 @@ def get_donacion_service() -> DonacionService:
     repo = DonacionRepository()
     
     return DonacionService(repo)
+
+def get_inicializar_mes_orquestador(
+    donacion_service: DonacionService = Depends(get_donacion_service)
+) -> InicializarMesOrquestador:
+    inventario_repo = InventarioRepository()
+    inventario_service = InventarioService(inventario_repo)
+    return InicializarMesOrquestador(donacion_service, inventario_service)
 
 def get_registrar_donacion_orquestador(
     donacion_service: DonacionService = Depends(get_donacion_service)
@@ -39,9 +46,9 @@ def get_eliminar_donacion_orquestador(
 @router.post("/", response_model=MesDonacion)
 async def crear_mes(
     datos: InicializarMes,
-    service: DonacionService = Depends(get_donacion_service)
+    orquestador: InicializarMesOrquestador = Depends(get_inicializar_mes_orquestador)
 ):
-    return await service.inicializar_nuevo_mes(datos)
+    return await orquestador.ejecutar(datos)
 
 @router.put("/{year}/{mes}")
 async def agregar_alimento(
