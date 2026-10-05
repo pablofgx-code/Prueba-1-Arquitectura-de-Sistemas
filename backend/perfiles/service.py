@@ -98,6 +98,14 @@ class PerfilService:
 
         return list(resumen_meses.values())
 
+    
+    async def contar_retiros_mes_actual(self, year: int, mes: int) -> int:
+        perfiles = await self.repo.obtener_todos()
+        return sum(
+            1 for p in perfiles
+            if any(d.year == year and d.month == mes for d in p.historial_retiros)
+        )
+    
     async def generar_reporte_excel(self) -> StreamingResponse:
 
         perfiles = await self.repo.obtener_todos_historial()
