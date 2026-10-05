@@ -1,0 +1,318 @@
+{% extends "pages/base.html" %}
+
+{% block title %}Panel de Donaciones{% endblock %}
+
+{% block extra_head %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
+{% endblock %}
+
+{% block navbar %}
+  {% include "components/navbar.html" %}
+{% endblock %}
+
+{% block content %}
+  <!-- ============ ENCABEZADO ============ -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-0">Panel de Donaciones</h1>
+      <small class="text-muted">Resumen general · mes en curso</small>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-outline-secondary btn-sm" id="btnActualizarDashboard">
+        <i class="bi bi-arrow-clockwise"></i> Actualizar
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" id="btnAbrirPersona">
+        <i class="bi bi-person-plus-fill"></i> Añadir persona
+      </button>
+    </div>
+  </div>
+
+  <!-- Alerta de confirmación (la usa modal_persona.js) -->
+  <div id="alertaPersona" class="alert alert-success alert-dismissible fade d-none" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i><span id="alertaPersonaTexto"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+  </div>
+
+  <!-- Errores de carga del panel -->
+  <div id="alertaPanel" class="mb-3"></div>
+
+  <!-- ============ MÉTRICAS ============ -->
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card stat-card bg-grad-primary h-100">
+        <div class="card-body">
+          <div class="card-title">Personas registradas</div>
+          <div class="value" id="contadorPersonas">0</div>
+          <div class="hint"><i class="bi bi-people"></i> Beneficiarios en el sistema</div>
+          <i class="bi bi-people-fill icon-bg"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card stat-card bg-grad-success h-100">
+        <div class="card-body">
+          <div class="card-title">Alimentos ingresados (mes)</div>
+          <div class="value" id="contadorIngresados">0</div>
+          <div class="hint"><i class="bi bi-box2-heart"></i> Donaciones recibidas este mes</div>
+          <i class="bi bi-box2-heart-fill icon-bg"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card stat-card bg-grad-primary h-100">
+        <div class="card-body">
+          <div class="card-title">Retiros realizados (mes)</div>
+          <div class="value" id="contadorRetiros">0</div>
+          <div class="hint"><i class="bi bi-box-arrow-up"></i> Personas atendidas este mes</div>
+          <i class="bi bi-box-arrow-up icon-bg"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DETALLE SEMANAL (donaciones) ============ -->
+  <div class="panel mt-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+      <div>
+        <h5 class="mb-0">Detalle de alimentos ingresados</h5>
+        <small class="text-muted">
+          Acumulado del mes ·
+          <span id="etiquetaSemana">—</span>
+        </small>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <label for="selectSemana" class="form-label mb-0 small text-muted text-nowrap">Hasta la semana:</label>
+        <select id="selectSemana" class="form-select form-select-sm" style="width: auto;" disabled></select>
+        <span class="badge text-bg-light text-nowrap" id="ultimaActualizacion">Cargando…</span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="width: 45%;">Distribución</th>
+            <th class="text-end">Cantidad ingresada</th>
+          </tr>
+        </thead>
+        <tbody id="tbodySemanal"></tbody>
+      </table>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mt-3 pt-3 border-top">
+      <span class="badge text-bg-light"><i class="bi bi-box-seam me-1"></i><span id="totalProductos">0</span> productos</span>
+      <span class="badge text-bg-light"><i class="bi bi-123 me-1"></i><span id="totalUnidades">0</span> unidades</span>
+    </div>
+  </div>
+
+  <!-- ============ INVENTARIO ACTUAL (bodega) ============ -->
+  <div class="panel mt-4">
+    <div class="mb-3">
+      <h5 class="mb-0">Inventario actual</h5>
+      <small class="text-muted">Existencias en bodega (se reinicia al inicializar un nuevo mes)</small>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="width: 45%;">Distribución</th>
+            <th class="text-end">Cantidad disponible</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyInventario"></tbody>
+      </table>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mt-3 pt-3 border-top">
+      <span class="badge text-bg-light"><i class="bi bi-box-seam me-1"></i><span id="invProductos">0</span> productos</span>
+      <span class="badge text-bg-light"><i class="bi bi-123 me-1"></i><span id="invUnidades">0</span> unidades</span>
+    </div>
+  </div>
+
+  {% include 'modals/modal_persona.html' %}
+{% endblock %}
+
+{% block extra_scripts %}
+  <script type="module" src="{{ url_for('static', path='js/modal_persona.js') }}"></script>
+
+  <script type="module">
+    import { homeService } from "/services/homeService.js";
+    import { donacionesService } from "/services/donacionesSemanalesService.js";
+
+    const COLORES = ["warning", "danger", "success", "primary", "info", "secondary"];
+    const hoy = new Date();
+    const YEAR = hoy.getFullYear();
+    const MES = hoy.getMonth() + 1;
+
+    const $ = (id) => document.getElementById(id);
+    const fmt = (n) => Number(n || 0).toLocaleString("es-CL");
+
+    // Color estable por nombre de alimento
+    function colorDe(nombre) {
+      let h = 0;
+      for (const ch of String(nombre).toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+      return COLORES[h % COLORES.length];
+    }
+
+    let semanas = [];
+
+    function filaMensaje(texto) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 3;
+      td.className = "text-center text-muted py-4";
+      td.textContent = texto;
+      tr.append(td);
+      return tr;
+    }
+
+    function renderTabla(tbodyId, items, idProductos, idUnidades, vacio) {
+      const tbody = $(tbodyId);
+
+      if (!items.length) {
+        tbody.replaceChildren(filaMensaje(vacio));
+        $(idProductos).textContent = 0;
+        $(idUnidades).textContent = 0;
+        return;
+      }
+
+      const max = Math.max(...items.map((i) => i.cantidad), 1);
+
+      const filas = items.map((item) => {
+        const color = colorDe(item.nombre);
+        const pct = Math.round((item.cantidad / max) * 100);
+
+        const tr = document.createElement("tr");
+
+        const tdNombre = document.createElement("td");
+        tdNombre.innerHTML = `<i class="bi bi-box-seam text-${color} me-2"></i>`;
+        tdNombre.append(item.nombre);
+
+        const tdBarra = document.createElement("td");
+        tdBarra.innerHTML = `
+          <div class="progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar bg-${color}" style="width:${pct}%"></div>
+          </div>`;
+
+        const tdCant = document.createElement("td");
+        tdCant.className = "text-end fw-semibold";
+        tdCant.textContent = fmt(item.cantidad);
+
+        tr.append(tdNombre, tdBarra, tdCant);
+        return tr;
+      });
+
+      tbody.replaceChildren(...filas);
+      $(idProductos).textContent = items.length;
+      $(idUnidades).textContent = fmt(items.reduce((a, i) => a + i.cantidad, 0));
+    }
+
+    // Detalle semanal: acumulado de la semana 1 hasta la elegida
+    function renderSemana(numero) {
+      const acumulado = new Map();
+      semanas
+        .filter((s) => s.numero_semana <= numero)
+        .forEach((s) => s.donaciones.forEach((d) => {
+          acumulado.set(d.tipo_alimento, (acumulado.get(d.tipo_alimento) || 0) + d.cantidad);
+        }));
+
+      const items = [...acumulado]
+        .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+        .sort((a, b) => b.cantidad - a.cantidad);
+
+      $("etiquetaSemana").textContent = `semanas 1 a ${numero}`;
+      renderTabla("tbodySemanal", items, "totalProductos", "totalUnidades",
+        "Aún no hay donaciones este mes");
+    }
+
+    function prepararSelector(mesDoc) {
+      const select = $("selectSemana");
+      semanas = mesDoc
+        ? [...mesDoc.semanas].sort((a, b) => a.numero_semana - b.numero_semana)
+        : [];
+
+      if (!semanas.length) {
+        select.replaceChildren();
+        select.disabled = true;
+        $("etiquetaSemana").textContent = "—";
+        renderTabla("tbodySemanal", [], "totalProductos", "totalUnidades",
+          "Aún no hay donaciones este mes");
+        return;
+      }
+
+      const conDonaciones = semanas.filter((s) => s.donaciones.length > 0);
+      const ultima = (conDonaciones.at(-1) ?? semanas.at(-1)).numero_semana;
+      const previa = Number(select.value);
+      const elegida = semanas.some((s) => s.numero_semana === previa) ? previa : ultima;
+
+      select.replaceChildren(...semanas.map((s) => {
+        const op = document.createElement("option");
+        op.value = s.numero_semana;
+        op.textContent = `Semana ${s.numero_semana}` + (s.numero_semana === ultima ? " (última con datos)" : "");
+        return op;
+      }));
+      select.value = elegida;
+      select.disabled = false;
+      renderSemana(elegida);
+    }
+
+    function mostrarError(mensaje) {
+      const div = document.createElement("div");
+      div.className = "alert alert-danger mb-0";
+      div.setAttribute("role", "alert");
+      div.textContent = mensaje;
+      $("alertaPanel").replaceChildren(div);
+    }
+
+    async function cargarTodo() {
+      const btn = $("btnActualizarDashboard");
+      btn.disabled = true;
+      $("alertaPanel").replaceChildren();
+
+      const [dash, mes] = await Promise.allSettled([
+        homeService.obtenerDashboard(),
+        donacionesService.obtenerMes(YEAR, MES),
+      ]);
+
+      if (dash.status === "fulfilled") {
+        const d = dash.value;
+        $("contadorPersonas").textContent = fmt(d.total_personas_registradas);
+        $("contadorIngresados").textContent = fmt(d.total_alimentos_ingresados_mes);
+        $("contadorRetiros").textContent = fmt(d.total_alimentos_salidos_mes);
+
+        renderTabla(
+          "tbodyInventario",
+          d.inventario_actual.map((i) => ({ nombre: i.tipo_alimento, cantidad: i.cantidad_total })),
+          "invProductos", "invUnidades", "No hay alimentos en bodega"
+        );
+      } else {
+        mostrarError(dash.reason?.message || "No se pudieron cargar las métricas");
+      }
+
+      // Un 404 significa que el mes aún no se inicializa
+      if (mes.status === "fulfilled") {
+        prepararSelector(mes.value);
+      } else {
+        prepararSelector(null);
+        if (mes.reason?.status !== 404) {
+          mostrarError(mes.reason?.message || "No se pudo cargar el detalle semanal");
+        }
+      }
+
+      $("ultimaActualizacion").textContent =
+        "Actualizado " + new Date().toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+      btn.disabled = false;
+    }
+
+    document.addEventListener("persona-creada", cargarTodo);
+    $("selectSemana").addEventListener("change", (e) => renderSemana(Number(e.target.value)));
+    $("btnActualizarDashboard").addEventListener("click", cargarTodo);
+    cargarTodo();
+  </script>
+{% endblock %}

@@ -7,11 +7,9 @@ from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, patch
 from beanie import PydanticObjectId
 from fastapi import HTTPException
-from datetime import date, datetime
 
 from main import app
 from backend.auth.dependencies import obtener_admin_actual
-from backend.inventario.models import LotePerecible, RegistroSalida
 from backend.inventario.router import get_inventario_service
 from backend.inventario.service import InventarioService
 from backend.inventario.repository import InventarioRepository
@@ -29,8 +27,7 @@ def test_router_ver_bodega():
         {
             "id": PydanticObjectId("507f1f77bcf86cd799439011"), 
             "tipo_alimento": "Arroz", 
-            "cantidad_disponible": 10, 
-            "fecha_vencimiento": date(2025, 1, 1)
+            "cantidad_disponible": 10
         }
     ]
     app.dependency_overrides[get_inventario_service] = lambda: mock_service
@@ -47,38 +44,15 @@ async def test_servicio_registrar_ingreso(mock_lote_class):
     
     repo.buscar_lote_especifico.return_value = None
     mock_lote_class.return_value = AsyncMock()
-    await service.registrar_ingreso("Fideos", 10, date(2025, 1, 1))
+    await service.registrar_ingreso("Fideos", 10)
     assert repo.insert.called
     
     lote_existente = AsyncMock()
     lote_existente.cantidad_disponible = 5
     repo.buscar_lote_especifico.return_value = lote_existente
-    await service.registrar_ingreso("Fideos", 5, date(2025, 1, 1))
+    await service.registrar_ingreso("Fideos", 5)
     assert lote_existente.cantidad_disponible == 10
     assert repo.guardar.called
-
-@pytest.mark.asyncio
-async def test_servicio_registrar_salida():
-    repo = AsyncMock()
-    service = InventarioService(repo)
-    
-    lote1 = AsyncMock()
-    lote1.cantidad_disponible = 5
-    
-    repo.buscar_lotes_disponibles.return_value = [lote1]
-    with pytest.raises(HTTPException) as exc:
-        await service.registrar_salida("Arroz", 10)
-    assert exc.value.status_code == 400
-    assert "insuficiente" in exc.value.detail
-    
-    lote2 = AsyncMock()
-    lote2.cantidad_disponible = 10
-    repo.buscar_lotes_disponibles.return_value = [lote1, lote2] 
-    
-    await service.registrar_salida("Arroz", 12)
-    assert lote1.cantidad_disponible == 0
-    assert lote2.cantidad_disponible == 3
-    assert repo.guardar.call_count == 2
 
 @pytest.mark.asyncio
 async def test_servicio_revertir_ingreso():
@@ -87,20 +61,19 @@ async def test_servicio_revertir_ingreso():
     
     lote1 = AsyncMock()
     lote1.cantidad_disponible = 5
-    repo.buscar_lotes_por_fecha.return_value = [lote1]
+    repo.buscar_lote_especifico.return_value = lote1
     
     with pytest.raises(HTTPException) as exc:
-        await service.revertir_ingreso("Leche", 10, date(2025,1,1))
+        await service.revertir_ingreso("Leche", 10)
     assert exc.value.status_code == 400
         
-    await service.revertir_ingreso("Leche", 5, date(2025,1,1))
+    await service.revertir_ingreso("Leche", 5)
     assert lote1.cantidad_disponible == 0
     assert repo.guardar.called
 
 @pytest.mark.asyncio
 @patch("backend.inventario.service.RegistroSalida")
-@patch("backend.inventario.service.ItemLlevado")
-async def test_servicio_utilidades_extras(mock_item, mock_registro):
+async def test_servicio_utilidades_extras(mock_registro):
     repo = AsyncMock()
     service = InventarioService(repo)
     
@@ -116,12 +89,8 @@ async def test_servicio_utilidades_extras(mock_item, mock_registro):
     salidas = await service.contar_salidas_mes_actual(2026, 9)
     assert salidas == 100
     
-    alimento_mock = AsyncMock()
-    alimento_mock.tipo_alimento = "Pan"
-    alimento_mock.cantidad = 2
     mock_registro.return_value = AsyncMock()
-    
-    await service.registro_ticket_transaccion("11111111-1", [alimento_mock])
+    await service.registro_ticket_transaccion("11111111-1")
     assert repo.guardar_ticket_salida.called
 
 @pytest.mark.asyncio

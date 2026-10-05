@@ -6,15 +6,14 @@ services:
     ports:
       - "8000:8000"
     environment:
-      MONGO_URL: mongodb://mongodb:27017
-      MONGO_DB: iglesia_donaciones
+      MONGODB_URL: mongodb://mongodb:27017
+      DATABASE_NAME: iglesia_donaciones
     depends_on:
       - mongodb
 
   mongodb:
     image: mongo:7
     container_name: iglesia_mongodb
-
     volumes:
       - mongodb_data:/data/db
 

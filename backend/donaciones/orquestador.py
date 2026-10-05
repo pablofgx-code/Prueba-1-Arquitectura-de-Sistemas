@@ -1,8 +1,7 @@
 from backend.donaciones.schemas import AgregarDonaciones
-from backend.donaciones.models import DonacionAlimento
 from backend.donaciones.service import DonacionService
+from backend.donaciones.schemas import InicializarMes
 from backend.inventario.service import InventarioService
-from typing import List
 from fastapi import HTTPException
 
 class RegistrarDonacionOrquestador:
@@ -17,8 +16,7 @@ class RegistrarDonacionOrquestador:
 
         await self.inventario_service.registrar_ingreso(
             tipo_alimento = datos.tipo_alimento,
-            cantidad = datos.cantidad,
-            fecha_vencimiento = datos.fecha_vencimiento
+            cantidad = datos.cantidad
         )
 
         return respuesta
@@ -42,8 +40,7 @@ class EliminarDonacionOrquestador:
         
         await self.inventario_service.revertir_ingreso(
             tipo_alimento = donacion.tipo_alimento, 
-            cantidad = donacion.cantidad,
-            fecha_vencimiento = donacion.fecha_vencimiento
+            cantidad = donacion.cantidad
         )
 
         await self.donacion_service.eliminar_donacion_especifica(year, mes, numero_semana, donacion_id)
@@ -63,14 +60,25 @@ class EliminarDonacionOrquestador:
         for donacion in donaciones:
             await self.inventario_service.revertir_ingreso(
                 tipo_alimento=donacion.tipo_alimento, 
-                cantidad=donacion.cantidad,
-                fecha_vencimiento=donacion.fecha_vencimiento
+                cantidad=donacion.cantidad
             )
         await self.donacion_service.vaciar_donaciones_semana(year, mes, numero_semana)
         
         return {"mensaje": f"Se eliminaron {len(donaciones)} donaciones y se revirtió el stock de bodega."}
 
 
+
+class InicializarMesOrquestador:
+    def __init__(self, donacion_service: DonacionService, inventario_service: InventarioService):
+        self.donacion_service = donacion_service
+        self.inventario_service = inventario_service
+
+    async def ejecutar(self, datos: InicializarMes) -> dict:
+        nuevo_mes = await self.donacion_service.inicializar_nuevo_mes(datos)
+        
+        await self.inventario_service.vaciar_bodega()
+        
+        return nuevo_mes
 
 
 

@@ -14,8 +14,8 @@ load_dotenv(find_dotenv())
 
 async def iniciar_base_de_datos():
 
-    url_base_datos = os.getenv(
-        "MONGO_URL",
+    mongo_url = os.getenv(
+        "MONGODB_URL",
         "mongodb://localhost:27017"
     )
 
@@ -24,12 +24,12 @@ async def iniciar_base_de_datos():
         "iglesia_donaciones"
     )
 
-    if not url_base_datos or not nombre_base_datos:
+    if not mongo_url or not nombre_base_datos:
         raise ValueError(
             "Faltan variables de entorno para la Base de Datos"
         )
 
-    client = AsyncMongoClient(url_base_datos)
+    client = AsyncMongoClient(mongo_url)
     db = client[nombre_base_datos]
 
     await init_beanie(
@@ -44,5 +44,6 @@ async def iniciar_base_de_datos():
     )
 
     print(
-        f"Base de datos MongoDB conectada. {nombre_base_datos}"
+        f"Base de datos MongoDB conectada. "
+        f"{mongo_url} / {nombre_base_datos}"
     )

@@ -22,7 +22,7 @@ class ObtenerMetricasOrquestador:
 
         ingresados = await self.donacion_service.contar_alimentos_mes_actual(hoy.year, hoy.month)
 
-        salidos = await self.inventario_service.contar_salidas_mes_actual(hoy.year, hoy.month)
+        salidos = await self.perfil_service.contar_retiros_mes_actual(hoy.year, hoy.month)
 
         bodega = await self.inventario_service.obtener_resumen_agrupado()
 

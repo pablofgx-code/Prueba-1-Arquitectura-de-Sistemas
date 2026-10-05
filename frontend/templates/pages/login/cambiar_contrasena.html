@@ -1,0 +1,27 @@
+{% extends "pages/base.html" %}
+
+{% block navbar %}
+  {% include "components/navbar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 400px;">
+  <h2 class="text-center mb-4">Cambiar Contraseña</h2>
+
+  <form data-form="cambiar-password"
+        data-target="#change-response">
+    <div class="mb-3">
+      <label for="password_actual" class="form-label">Contraseña actual</label>
+      <input type="password" class="form-control" id="password_actual" name="password_actual" required>
+    </div>
+    <div class="mb-3">
+      <label for="nueva_password" class="form-label">Nueva Contraseña</label>
+      <input type="password" class="form-control" id="nueva_password" name="nueva_password" minlength="6" required>
+    </div>
+
+    <button type="submit" class="btn btn-warning w-100">Actualizar Contraseña</button>
+  </form>
+
+  <div id="change-response" class="mt-3"></div>
+</div>
+{% endblock %}

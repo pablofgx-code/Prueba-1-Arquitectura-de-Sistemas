@@ -1,0 +1,36 @@
+/* --- Tarjeta de persona --- */
+    .person-card summary {
+      list-style: none;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+    .person-card summary::-webkit-details-marker { display: none; }
+    .person-card summary:hover { background-color: var(--bs-tertiary-bg); }
+
+    .avatar {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .chevron { transition: transform 0.25s ease; }
+    .person-card[open] .chevron { transform: rotate(180deg); }
+
+    .person-card[open] .detalle { animation: slideDown 0.28s ease-out; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .person-card dt { font-size: 0.7rem; letter-spacing: 0.03em; }
+
+    .empty-state {
+      border: 1px dashed var(--bs-border-color);
+      border-radius: 0.75rem;
+      padding: 2.5rem 1.5rem;
+      background-color: #fff;
+    }

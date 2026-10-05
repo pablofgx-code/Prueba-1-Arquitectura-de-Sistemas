@@ -36,8 +36,7 @@ class DonacionService:
 
         nueva_donacion= DonacionAlimento(
             tipo_alimento = datos.tipo_alimento,
-            cantidad = datos.cantidad,
-            fecha_vencimiento = datos.fecha_vencimiento
+            cantidad = datos.cantidad
         )
 
         semana_destino.donaciones.append(nueva_donacion)

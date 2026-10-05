@@ -63,8 +63,10 @@ class AuthService:
     async def cambiar_password(self, admin: Administrador, datos: CambiarPassword) -> dict:
 
         if not security.verificar_password(datos.password_actual, admin.hashed_password):
-            raise HTTPException(status_code=401, detail="La contraseña actual es incorrecta")
-
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="La contraseña actual es incorrecta"
+                )
         if security.verificar_password(datos.nueva_password, admin.hashed_password):
             raise HTTPException(
                 status_code=400,
