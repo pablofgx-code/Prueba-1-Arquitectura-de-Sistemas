@@ -83,15 +83,15 @@ async def poblar_base_de_datos():
                 {
                     "numero_semana": 1,
                     "donaciones": [
-                        {"id": "don-001", "tipo_alimento": "Arroz", "cantidad": 25, "fecha_vencimiento": date(2027, 6, 30)},
-                        {"id": "don-002", "tipo_alimento": "Fideos", "cantidad": 40, "fecha_vencimiento": date(2027, 8, 15)},
+                        {"id": "don-001", "tipo_alimento": "Arroz", "cantidad": 25},
+                        {"id": "don-002", "tipo_alimento": "Fideos", "cantidad": 40},
                     ],
                 },
                 {
                     "numero_semana": 2,
                     "donaciones": [
-                        {"id": "don-003", "tipo_alimento": "Leche Entera", "cantidad": 15, "fecha_vencimiento": date(2026, 12, 1)},
-                        {"id": "don-004", "tipo_alimento": "Aceite", "cantidad": 10, "fecha_vencimiento": date(2028, 1, 1)},
+                        {"id": "don-003", "tipo_alimento": "Leche Entera", "cantidad": 15},
+                        {"id": "don-004", "tipo_alimento": "Aceite", "cantidad": 10},
                     ],
                 },
             ],
@@ -104,9 +104,9 @@ async def poblar_base_de_datos():
     # ============================================================
     if await LotePerecible.count() == 0:
         lotes = [
-            LotePerecible(tipo_alimento="Arroz", cantidad_disponible=25, fecha_vencimiento=date(2027, 6, 30)),
-            LotePerecible(tipo_alimento="Leche Entera", cantidad_disponible=15, fecha_vencimiento=date(2026, 12, 1)),
-            LotePerecible(tipo_alimento="Aceite", cantidad_disponible=10, fecha_vencimiento=date(2028, 1, 1)),
+            LotePerecible(tipo_alimento="Arroz", cantidad_disponible=25),
+            LotePerecible(tipo_alimento="Leche Entera", cantidad_disponible=15),
+            LotePerecible(tipo_alimento="Aceite", cantidad_disponible=10),
         ]
         await LotePerecible.insert_many(lotes)
         logger.info("🟢 Seed: Lotes de inventario creados.")
@@ -118,13 +118,11 @@ async def poblar_base_de_datos():
         salidas = [
             RegistroSalida(
                 fecha=datetime.now(),
-                rut_beneficiario="12.345.678-9",
-                alimentos_entregados=[ItemLlevado(tipo_alimento="Fideos", cantidad=10)],
+                rut_beneficiario="12.345.678-9"
             ),
             RegistroSalida(
                 fecha=datetime.now(),
-                rut_beneficiario="20.111.222-3",
-                alimentos_entregados=[ItemLlevado(tipo_alimento="Arroz", cantidad=5)],
+                rut_beneficiario="20.111.222-3"
             ),
         ]
         await RegistroSalida.insert_many(salidas)

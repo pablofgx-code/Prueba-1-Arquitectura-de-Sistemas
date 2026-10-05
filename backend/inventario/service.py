@@ -11,9 +11,8 @@ class InventarioService:
     async def obtener_bodega_completa(self):
         return await self.repo.obtener_todo()
 
-    async def registrar_ingreso(self, tipo_alimento: str, cantidad: int, fecha_vencimiento: date) -> LotePerecible:
-
-        lote_existente = await self.repo.buscar_lote_especifico(tipo_alimento, fecha_vencimiento)
+    async def registrar_ingreso(self, tipo_alimento: str, cantidad: int) -> LotePerecible:
+        lote_existente = await self.repo.buscar_lote_especifico(tipo_alimento)
 
         if lote_existente:
             lote_existente.cantidad_disponible += cantidad
@@ -21,63 +20,21 @@ class InventarioService:
         
         nuevo_lote = LotePerecible(
             tipo_alimento = tipo_alimento.capitalize(),
-            cantidad_disponible = cantidad,
-            fecha_vencimiento = fecha_vencimiento
+            cantidad_disponible = cantidad
         )
         return await self.repo.insert(nuevo_lote)
-
-    async def registrar_salida(self, tipo_alimento: str, cantidad_requerida: int):
-
-        lotes = await self.repo.buscar_lotes_disponibles(tipo_alimento)
-
-        total_disponible = sum(lote.cantidad_disponible for lote in lotes)
-
-        if total_disponible < cantidad_requerida:
-            raise HTTPException(
-                status_code = status.HTTP_400_BAD_REQUEST,
-                detail = f"Stock insuficiente de {tipo_alimento}. Solicitado: {cantidad_requerida}, Disponible: {total_disponible}."
-            )
-
-        cantidad_por_descontar = cantidad_requerida
-
-        for lote in lotes:
-            if cantidad_por_descontar == 0:
-                break
-
-            if lote.cantidad_disponible <= cantidad_por_descontar:
-                cantidad_por_descontar -= lote.cantidad_disponible
-                lote.cantidad_disponible = 0
-            else:
-                lote.cantidad_disponible -= cantidad_por_descontar
-                cantidad_por_descontar = 0
-
-            await self.repo.guardar(lote)
         
-    async def revertir_ingreso(self, tipo_alimento: str, cantidad: int, fecha_vencimiento: date):
-
-        lotes = await self.repo.buscar_lotes_por_fecha(tipo_alimento, fecha_vencimiento)
-
-        total_disponible = sum(lote.cantidad_disponible for lote in lotes)
+    async def revertir_ingreso(self, tipo_alimento: str, cantidad: int):
+        lote = await self.repo.buscar_lote_especifico(tipo_alimento)
         
-        if total_disponible < cantidad:
+        if not lote or lote.cantidad_disponible < cantidad:
             raise HTTPException(
                 status_code=400, 
-                detail=f"No se puede eliminar la donacion. El lote de {tipo_alimento} ya fue consumido parcialmente."
+                detail=f"Stock insuficiente para revertir la donacion de {tipo_alimento}."
             )
         
-        cantidad_por_descontar = cantidad
-        for lote in lotes:
-            if cantidad_por_descontar == 0:
-                break
-                
-            if lote.cantidad_disponible <= cantidad_por_descontar:
-                cantidad_por_descontar -= lote.cantidad_disponible
-                lote.cantidad_disponible = 0
-            else:
-                lote.cantidad_disponible -= cantidad_por_descontar
-                cantidad_por_descontar = 0
-                
-            await self.repo.guardar(lote)
+        lote.cantidad_disponible -= cantidad
+        await self.repo.guardar(lote)
 
     async def obtener_resumen_agrupado(self) -> list:
         
@@ -94,20 +51,18 @@ class InventarioService:
         
         return [{"tipo_alimento" : nombre, "cantidad_total" : total} for nombre, total in resumen.items()]
 
-    async def registro_ticket_transaccion(self, rut: str, alimentos: list) -> None:
-
-        items = [ItemLlevado(tipo_alimento = alimento.tipo_alimento, cantidad = alimento.cantidad) for alimento in alimentos]
-        
+    async def registro_ticket_transaccion(self, rut: str) -> None:
         ticket = RegistroSalida(
             fecha = datetime.now(),
-            rut_beneficiario = rut,
-            alimentos_entregados = items
+            rut_beneficiario = rut
         )
-        
         await self.repo.guardar_ticket_salida(ticket)
 
     async def contar_salidas_mes_actual(self, year: int, mes: int) -> int:
-
         return await self.repo.sumar_salidas_del_mes(year, mes)
+
+    async def vaciar_bodega(self) -> None:
+
+        await LotePerecible.delete_all()
 
 

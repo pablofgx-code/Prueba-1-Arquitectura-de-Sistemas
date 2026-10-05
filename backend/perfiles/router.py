@@ -44,10 +44,9 @@ async def listar_perfiles(
 @router.post("/{rut}/retiros")
 async def registrar_retiro_manual(
     rut: str,
-    datos: SolicitudRetiro,
     orquestador: RegistrarRetiroOrquestador = Depends(get_registrar_retiro_orquestador)
 ):
-    return await orquestador.ejecutar(rut, datos)
+    return await orquestador.ejecutar(rut)
 
 @router.get("/reporte/excel", response_class=StreamingResponse)
 async def descargar_reporte_excel(
