@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from datetime import date
 
 class InicializarMes(BaseModel):
     year: int = Field(..., ge = 2024)

@@ -1,9 +1,7 @@
 from backend.donaciones.schemas import AgregarDonaciones
-from backend.donaciones.models import DonacionAlimento
 from backend.donaciones.service import DonacionService
 from backend.donaciones.schemas import InicializarMes
 from backend.inventario.service import InventarioService
-from typing import List
 from fastapi import HTTPException
 
 class RegistrarDonacionOrquestador:

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from typing import List
 from fastapi.responses import StreamingResponse
-from backend.perfiles.schemas import PerfilCreate, PerfilResponse, SolicitudRetiro
+from backend.perfiles.schemas import PerfilCreate, PerfilResponse
 from backend.perfiles.service import PerfilService
 from backend.auth.dependencies import obtener_admin_actual
 from backend.perfiles.repository import PerfilRepository

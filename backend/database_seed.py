@@ -1,5 +1,3 @@
-
-
 import logging
 from datetime import date, datetime
 
@@ -8,13 +6,10 @@ from backend.perfiles.models import Perfil
 from backend.donaciones.models import MesDonacion
 from backend.inventario.models import (
     LotePerecible,
-    RegistroSalida,
-    ItemLlevado,
+    RegistroSalida
 )
 
-
 logger = logging.getLogger("uvicorn")
-
 
 async def poblar_base_de_datos():
     """Inserta datos de prueba si la base de datos está vacía."""
@@ -22,7 +17,6 @@ async def poblar_base_de_datos():
     # ============================================================
     # 1. Seed de Administradores
     # ============================================================
-
     if await Administrador.count() == 0:
         admin = Administrador(
             nombre="Admin Iglesia",
@@ -32,18 +26,12 @@ async def poblar_base_de_datos():
             ),
             activo=True,
         )
-
         await admin.insert()
-
-        logger.info(
-            "🟢 Seed: Administrador inicial creado "
-            "(admin@iglesia.org)."
-        )
+        logger.info("🟢 Seed: Administrador inicial creado (admin@iglesia.org).")
 
     # ============================================================
     # 2. Seed de Perfiles
     # ============================================================
-
     if await Perfil.count() == 0:
         perfiles = [
             Perfil(

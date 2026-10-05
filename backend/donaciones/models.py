@@ -2,7 +2,6 @@ import uuid
 from beanie import Document
 from pydantic import BaseModel, Field
 from typing import List
-from datetime import date
 
 class DonacionAlimento(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

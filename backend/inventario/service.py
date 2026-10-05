@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
-from backend.inventario.models import LotePerecible, ItemLlevado, RegistroSalida
+from backend.inventario.models import LotePerecible, RegistroSalida
 from backend.inventario.repository import InventarioRepository
-from datetime import date, datetime
+from datetime import datetime
 
 class InventarioService:
 

@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from beanie import PydanticObjectId
-from datetime import date
 
 class LotePerecibleResponse(BaseModel):
     id: PydanticObjectId

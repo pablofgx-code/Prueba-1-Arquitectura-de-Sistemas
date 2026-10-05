@@ -1,7 +1,6 @@
 from beanie import Document
-from datetime import date, datetime
-from pydantic import Field, BaseModel
-from typing import List
+from datetime import datetime
+from pydantic import Field
 
 class LotePerecible(Document):
 
